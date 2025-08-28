@@ -136,7 +136,6 @@
 
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
   .meter{font-variant-numeric:tabular-nums}
-  
 </style>
 </head>
 <body>
@@ -159,19 +158,19 @@
       <div class="grid cols-2">
         <div class="field">
           <input id="gameName" name="gameName" placeholder=" " required maxlength="60" autocomplete="off"/>
-          <label for="gameName" data-i18n="lblGameName">Oyun Adı *</label>
-          <p class="hint" data-i18n="hintGameName">Örn: Modern Warships</p>
+          <label for="gameName" data-i18n="lblGameName">Oyuncu Adı *</label>
+          <p class="hint" data-i18n="hintGameName">Örn: Velour</p>
         </div>
 
         <div class="field">
           <input id="gameId" name="gameId" placeholder=" " required maxlength="40" autocomplete="off"/>
-          <label for="gameId" data-i18n="lblGameId">Oyun Kimliği *</label>
-          <p class="hint" data-i18n="hintGameId">Oyundaki benzersiz kimliğin</p>
+          <label for="gameId" data-i18n="lblGameId">Oyuncu Kimliği *</label>
+          <p class="hint" data-i18n="hintGameId">Oyuncuya ait benzersiz kimlik</p>
         </div>
 
         <div class="field">
           <input id="discord" name="discord" placeholder=" " required maxlength="50" autocomplete="off"
-                 pattern="^(.+#[0-9]{4}|@?[\w.\-]{2,})$" />
+                 pattern="^(.+#[0-9]{4}|@?[\\w.\\-]{2,})$" />
           <label for="discord" data-i18n="lblDiscord">Discord Kullanıcı Adı *</label>
           <p class="hint" data-i18n="hintDiscord">Örn: Captain#1234 veya @kullanıcı</p>
         </div>
@@ -212,7 +211,6 @@
           Gönderince veriler <b>arka uca</b> iletilir; kopya e-posta <b>sadece yönetim</b> adresine gider.
         </div>
 
-        <!-- Uyarı kutusu -->
         <div class="alert">
           ⚠️ <span data-i18n="warnSubscriber">Abone olmayanların formları dikkate alınmayacaktır.</span>
         </div>
@@ -249,8 +247,9 @@ const ALLOWED_TYPES = ["image/jpeg","image/png","image/webp","image/gif","image/
 const I18N = {
   tr:{pageTitle:"Çekiliş Formu • Velour",formTitle:"Çekiliş Formu",
     powered:"Velour tarafından destekleniyor",
-    lblGameName:"Oyun Adı *",hintGameName:"Örn: Modern Warships",
-    lblGameId:"Oyun Kimliği *",hintGameId:"Oyundaki benzersiz kimliğin",
+    /* GÜNCEL: Oyun → Oyuncu ve örnek Velour */
+    lblGameName:"Oyuncu Adı *",hintGameName:"Örn: Velour",
+    lblGameId:"Oyuncu Kimliği *",hintGameId:"Oyuncuya ait benzersiz kimlik",
     lblDiscord:"Discord Kullanıcı Adı *",hintDiscord:"Örn: Captain#1234 veya @kullanıcı",
     lblSubscriber:"Abone misin? *",optSelect:"Seçiniz",optYes:"Evet",optNo:"Hayır",
     uploadTitle:"Kanıt / Görsel Yükleme",
@@ -269,8 +268,9 @@ const I18N = {
   },
   en:{pageTitle:"Giveaway Form • Velour",formTitle:"Giveaway Form",
     powered:"Powered by Velour",
-    lblGameName:"Game Name *",hintGameName:"Ex: Modern Warships",
-    lblGameId:"Game ID *",hintGameId:"Your unique in-game identifier",
+    /* UPDATED: Game → Player and example Velour */
+    lblGameName:"Player Name *",hintGameName:"Ex: Velour",
+    lblGameId:"Player ID *",hintGameId:"Your unique player identifier",
     lblDiscord:"Discord Username *",hintDiscord:"Ex: Captain#1234 or @username",
     lblSubscriber:"Are you a subscriber? *",optSelect:"Select",optYes:"Yes",optNo:"No",
     uploadTitle:"Proof / Attachment Upload",
