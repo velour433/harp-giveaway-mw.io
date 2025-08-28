@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="tr" data-lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title data-i18n="pageTitle">Çekiliş Formu • Velour</title>
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b1020">
+<style>
+  :root{
+    --bg:#0b1020; --glass:#0f1733cc; --text:#ecf1ff; --muted:#a9b4d6;
+    --primary:#5ea1ff; --accent:#34d399; --danger:#ff6b6b;
+    --ring:0 0 0 3px color-mix(in oklab, var(--primary) 35%, transparent);
+    --border:1px solid rgba(255,255,255,.12);
+    --radius:16px; --shadow: 0 16px 40px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.25);
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --text:#0b1020; --muted:#4b5563; --glass:#ffffffd9; --bg:#eef3ff;
+      --border:1px solid rgba(0,0,0,.08);
+      --shadow: 0 18px 36px rgba(2,6,23,.08), 0 2px 10px rgba(2,6,23,.06);}
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--text);
+    font:16px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    background:#000 url('https://images.wallpapersden.com/image/download/world-of-warships-gaming-2023_bW5namiUmZqaraWkpJRmbmdlrWZlbWU.jpg') center/cover fixed no-repeat;
+  }
+  .overlay{position:fixed; inset:0; background:
+    radial-gradient(1000px 600px at 20% 10%, rgba(0,0,0,.40), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55)); pointer-events:none}
+  .container{max-width:920px; margin:min(6vh,64px) auto; padding:16px}
+  @media (max-width:560px){ .container{ padding:12px } }
+
+  .card{background:var(--glass); border:var(--border); border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(10px) saturate(120%); overflow:hidden}
+
+  /* Header – overlap fix (grid) */
+  .header{
+    display:grid; grid-template-columns: 1fr auto auto; align-items:center;
+    gap:12px; padding:18px 20px; border-bottom:var(--border)
+  }
+  .title{margin:0; font-size:clamp(22px,3vw,28px)}
+  .powered{opacity:.9; display:flex; align-items:center; gap:8px; font-weight:600; justify-self:end; white-space:nowrap}
+  .powered::before{content:""; width:8px;height:8px;border-radius:50%; background:var(--accent); box-shadow:0 0 14px var(--accent)}
+  .lang-switch{display:flex; gap:8px; align-items:center; justify-self:end}
+  .lang-switch button{padding:6px 10px; border-radius:10px; border:var(--border);
+    background:color-mix(in oklab, var(--glass) 96%, transparent); color:var(--text); cursor:pointer}
+  .lang-switch button[aria-pressed="true"]{ box-shadow:var(--ring); font-weight:700 }
+  @media (max-width:700px){
+    .header{ grid-template-columns: 1fr auto }
+    .powered{ grid-column: 1 / -1; justify-self:start; margin-top:6px }
+  }
+
+  form{display:grid; gap:16px; padding:18px}
+  .grid{display:grid; gap:12px}
+  @media (min-width:760px){ .grid.cols-2{grid-template-columns:1fr 1fr} }
+
+  .field{position:relative}
+  .field input,.field select,.field textarea{
+    width:100%; padding:16px 14px 14px; border-radius:12px; border:var(--border);
+    background: color-mix(in oklab, var(--glass) 92%, transparent); color:var(--text);
+    outline:none; transition:box-shadow .2s ease, border-color .2s ease, background .2s ease;
+    -webkit-tap-highlight-color: transparent; appearance:auto;
+  }
+  .field input::placeholder{color:transparent}
+
+  /* Floating label chip */
+  .field label{
+    position:absolute; left:12px; top:12px; padding:0 6px;
+    color:var(--muted);
+    background: color-mix(in oklab, var(--glass) 70%, transparent);
+    border-radius:6px; line-height:1; pointer-events:none;
+    transform-origin:left top;
+    transition: transform .15s ease, color .2s ease, background .2s ease, opacity .2s ease;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{
+    box-shadow:var(--ring); border-color:color-mix(in oklab, var(--primary) 40%, transparent)
+  }
+  .field input:not(:placeholder-shown)+label,
+  .field input:focus+label,
+  .field textarea:not(:placeholder-shown)+label,
+  .field textarea:focus+label{
+    transform:translateY(-14px) scale(.9);
+    color:color-mix(in oklab, var(--primary) 70%, var(--muted));
+    background: color-mix(in oklab, var(--glass) 88%, transparent);
+  }
+  /* SELECT: etiketi HER ZAMAN yukarıda tut → placeholder ile çakışma yok */
+  .field select + label,
+  .field select:focus + label,
+  .field select:valid + label{
+    transform:translateY(-14px) scale(.9);
+    color:color-mix(in oklab, var(--primary) 70%, var(--muted));
+    background: color-mix(in oklab, var(--glass) 88%, transparent);
+  }
+
+  .row{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
+  .hint{font-size:.9rem; color:var(--muted)}
+  .error{border-color:var(--danger)!important}
+  .error-msg{color:var(--danger); font-size:.9rem}
+  .btn{border:var(--border); background:linear-gradient(180deg, color-mix(in oklab, var(--primary) 18%, var(--glass)) 0%, var(--glass) 80%);
+    color:var(--text); padding:12px 14px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow)}
+  .btn.ghost{background:transparent}
+  .btn:disabled{opacity:.6; cursor:not-allowed}
+  .btn.loading{position:relative; pointer-events:none}
+  .btn.loading::after{
+    content:""; position:absolute; right:12px; top:50%; width:16px; height:16px; transform:translateY(-50%); border-radius:50%;
+    border:2px solid currentColor; border-left-color:transparent; animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
+
+  .dropzone{border:2px dashed color-mix(in oklab, var(--primary) 35%, transparent); border-radius:12px; padding:16px; text-align:center;
+    background: color-mix(in oklab, var(--glass) 90%, transparent)}
+  .dropzone.drag{background: color-mix(in oklab, var(--primary) 10%, transparent)}
+  .preview{display:grid; gap:8px; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); margin-top:10px}
+  .preview img{width:100%; aspect-ratio:1.3/1; object-fit:cover; border-radius:10px; border:var(--border)}
+
+  /* Uyarı kutusu: form içeriğiyle hizalı, tam genişlik */
+  .alert{
+    width:100%;
+    padding:12px 14px;
+    border-radius:10px;
+    background: color-mix(in oklab, var(--danger) 18%, var(--glass));
+    color: var(--danger);
+    font-weight:600; font-size:.95rem;
+  }
+
+  .footer{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:14px 18px; border-top:var(--border)}
+  @media (max-width:560px){ .footer .row{width:100%; justify-content:flex-end; gap:8px} .btn{padding:12px 14px} }
+
+  .toast{position:fixed; inset:auto 16px 16px auto; background:var(--glass); border:var(--border); padding:10px 12px; border-radius:10px; opacity:0; transform:translateY(10px); transition:.2s; box-shadow:var(--shadow)}
+  .toast.show{opacity:1; transform:none}
+
+  .corner-buttons{ position:fixed; left:16px; bottom:16px; display:flex; gap:10px; z-index:3; }
+  .corner-buttons a{ width:48px;height:48px;border-radius:12px; border:var(--border); background:var(--glass); display:grid; place-items:center; box-shadow:var(--shadow) }
+  .corner-buttons img{max-width:80%; max-height:80%}
+
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+  .meter{font-variant-numeric:tabular-nums}
+  
+</style>
+</head>
+<body>
+<div class="overlay" aria-hidden="true"></div>
+
+<div class="container">
+  <div class="card" role="region" aria-labelledby="formTitle">
+    <div class="header">
+      <h1 class="title" id="formTitle" data-i18n="formTitle">Çekiliş Formu</h1>
+      <div class="powered"><span data-i18n="powered">Velour tarafından destekleniyor</span></div>
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" id="langTr" aria-pressed="true">TR</button>
+        <button type="button" id="langEn" aria-pressed="false">EN</button>
+      </div>
+    </div>
+
+    <form id="gameForm" novalidate>
+      <input type="text" id="website" name="website" autocomplete="off" class="sr-only" tabindex="-1" aria-hidden="true" />
+
+      <div class="grid cols-2">
+        <div class="field">
+          <input id="gameName" name="gameName" placeholder=" " required maxlength="60" autocomplete="off"/>
+          <label for="gameName" data-i18n="lblGameName">Oyun Adı *</label>
+          <p class="hint" data-i18n="hintGameName">Örn: Modern Warships</p>
+        </div>
+
+        <div class="field">
+          <input id="gameId" name="gameId" placeholder=" " required maxlength="40" autocomplete="off"/>
+          <label for="gameId" data-i18n="lblGameId">Oyun Kimliği *</label>
+          <p class="hint" data-i18n="hintGameId">Oyundaki benzersiz kimliğin</p>
+        </div>
+
+        <div class="field">
+          <input id="discord" name="discord" placeholder=" " required maxlength="50" autocomplete="off"
+                 pattern="^(.+#[0-9]{4}|@?[\w.\-]{2,})$" />
+          <label for="discord" data-i18n="lblDiscord">Discord Kullanıcı Adı *</label>
+          <p class="hint" data-i18n="hintDiscord">Örn: Captain#1234 veya @kullanıcı</p>
+        </div>
+
+        <div class="field">
+          <select id="subscriber" name="subscriber" required>
+            <option value="" selected disabled data-i18n="optSelect">Seçiniz</option>
+            <option value="Evet" data-i18n="optYes">Evet</option>
+            <option value="Hayır" data-i18n="optNo">Hayır</option>
+          </select>
+          <label for="subscriber" data-i18n="lblSubscriber">Abone misin? *</label>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <div class="row">
+            <strong data-i18n="uploadTitle">Kanıt / Görsel Yükleme</strong>
+            <span class="hint" id="limitHint" data-i18n="uploadHint">
+              Abonelik ekran görüntüsü vb. (max 6 görsel | tekil ≤ 8 MB | toplam ≤ 24 MB)
+            </span>
+          </div>
+          <div id="dropzone" class="dropzone" aria-label="Dosya yükleme alanı">
+            <p><b data-i18n="dropBold">Dosyayı sürükleyip bırak</b> <span data-i18n="dropOr">veya</span> <span data-i18n="dropClick">tıkla.</span></p>
+            <input id="fileInput" type="file" class="sr-only" multiple accept="image/*,.pdf" />
+            <button class="btn ghost" type="button" id="fileBrowse" data-i18n="btnChoose">Dosya Seç</button>
+
+            <div class="row meter" style="margin-top:8px; justify-content:flex-start; gap:16px">
+              <span id="fileCount" class="hint">0 / 6</span>
+              <span id="fileSize" class="hint">0 MB / 24 MB</span>
+            </div>
+
+            <div id="preview" class="preview" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div class="hint" id="sendInfo" data-i18n="sendInfo">
+          Gönderince veriler <b>arka uca</b> iletilir; kopya e-posta <b>sadece yönetim</b> adresine gider.
+        </div>
+
+        <!-- Uyarı kutusu -->
+        <div class="alert">
+          ⚠️ <span data-i18n="warnSubscriber">Abone olmayanların formları dikkate alınmayacaktır.</span>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div id="formErrors" class="hint" aria-live="polite"></div>
+        <div class="row">
+          <button class="btn ghost" type="reset" id="resetBtn" data-i18n="btnReset">Sıfırla</button>
+          <button class="btn" type="button" id="saveBtn" data-i18n="btnDraft">Taslak</button>
+          <button class="btn" id="sendBtn" type="submit" data-i18n="btnSend">Gönder</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="corner-buttons" aria-label="Köşe kısayolları">
+  <a title="Modern Warships">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/67/Modern_Warships_logos.png" alt="Modern Warships logo">
+  </a>
+  <a title="Modern Warships">
+    <img src="https://media.discordapp.net/attachments/1306329798603309126/1410747508031754310/WhatsApp_Gorsel_2025-08-29_saat_01.05.00_72237f98-Photoroom.png?ex=68b22480&is=68b0d300&hm=0addf1e5c02b9003ed1a95c30bdba48af4246a3545cfa618446502d4b6b1a68f&=&format=webp&quality=lossless&width=930&height=930" alt="Modern Warships logo">
+  </a>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+const ENDPOINT = "https://spring-dream-b90b.velour662.workers.dev/submit";
+const MAX_FILES = 6, MAX_FILE_SIZE = 8 * 1024 * 1024, MAX_TOTAL_SIZE = 24 * 1024 * 1024;
+const ALLOWED_TYPES = ["image/jpeg","image/png","image/webp","image/gif","image/heic","image/heif","application/pdf"];
+
+const I18N = {
+  tr:{pageTitle:"Çekiliş Formu • Velour",formTitle:"Çekiliş Formu",
+    powered:"Velour tarafından destekleniyor",
+    lblGameName:"Oyun Adı *",hintGameName:"Örn: Modern Warships",
+    lblGameId:"Oyun Kimliği *",hintGameId:"Oyundaki benzersiz kimliğin",
+    lblDiscord:"Discord Kullanıcı Adı *",hintDiscord:"Örn: Captain#1234 veya @kullanıcı",
+    lblSubscriber:"Abone misin? *",optSelect:"Seçiniz",optYes:"Evet",optNo:"Hayır",
+    uploadTitle:"Kanıt / Görsel Yükleme",
+    uploadHint:"Abonelik ekran görüntüsü vb. (max 6 görsel | tekil ≤ 8 MB | toplam ≤ 24 MB)",
+    dropBold:"Dosyayı sürükleyip bırak",dropOr:"veya",dropClick:"tıkla.",
+    btnChoose:"Dosya Seç",sendInfo:"Gönderince veriler <b>arka uca</b> iletilir; kopya e-posta <b>sadece yönetim</b> adresine gider.",
+    btnReset:"Sıfırla",btnDraft:"Taslak",btnSend:"Gönder",
+    errRequired:"Lütfen zorunlu alanları doldurun.",
+    errType:(n,t)=>`${n}: desteklenmeyen tür (${t||"bilinmiyor"})`,
+    errBig:(n,lim)=>`${n}: dosya çok büyük (>${lim} MB)`,
+    errTotal:(lim)=>`Toplam dosya boyutu sınırı aşıldı (>${lim} MB)`,
+    infoMaxFiles:(n)=>`En fazla ${n} dosya yükleyebilirsin.`,
+    sent:"Gönderildi! Teşekkürler.",failed:(m)=>`Gönderim başarısız: ${m}`,
+    draftSaved:"Taslak kaydedildi.",formReset:"Form sıfırlandı.",
+    warnSubscriber:"Abone olmayanların formları dikkate alınmayacaktır."
+  },
+  en:{pageTitle:"Giveaway Form • Velour",formTitle:"Giveaway Form",
+    powered:"Powered by Velour",
+    lblGameName:"Game Name *",hintGameName:"Ex: Modern Warships",
+    lblGameId:"Game ID *",hintGameId:"Your unique in-game identifier",
+    lblDiscord:"Discord Username *",hintDiscord:"Ex: Captain#1234 or @username",
+    lblSubscriber:"Are you a subscriber? *",optSelect:"Select",optYes:"Yes",optNo:"No",
+    uploadTitle:"Proof / Attachment Upload",
+    uploadHint:"Subscription screenshot etc. (max 6 files | single ≤ 8 MB | total ≤ 24 MB)",
+    dropBold:"Drag & drop files",dropOr:"or",dropClick:"click here.",
+    btnChoose:"Choose Files",sendInfo:"On submit, data is sent to the <b>backend</b>; a copy email goes to <b>admins only</b>.",
+    btnReset:"Reset",btnDraft:"Save Draft",btnSend:"Submit",
+    errRequired:"Please fill in required fields.",
+    errType:(n,t)=>`${n}: unsupported type (${t||"unknown"})`,
+    errBig:(n,lim)=>`${n}: file too large (>${lim} MB)`,
+    errTotal:(lim)=>`Total upload size exceeded (>${lim} MB)`,
+    infoMaxFiles:(n)=>`You can upload up to ${n} files.`,
+    sent:"Submitted! Thank you.",failed:(m)=>`Submission failed: ${m}`,
+    draftSaved:"Draft saved.",formReset:"Form reset.",
+    warnSubscriber:"Forms from non-subscribers will not be considered."
+  }
+};
+
+function applyI18n(lang){
+  const dict = I18N[lang] || I18N.tr;
+  document.documentElement.lang = lang;
+  document.documentElement.dataset.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const key = el.dataset.i18n; const val = dict[key];
+    if(typeof val === "string"){ if(key==="sendInfo") el.innerHTML=val; else el.textContent=val; }
+  });
+  document.title = dict.pageTitle;
+  document.getElementById("langTr").setAttribute("aria-pressed", lang==="tr");
+  document.getElementById("langEn").setAttribute("aria-pressed", lang==="en");
+  updateMeters();
+  localStorage.setItem("velour.lang", lang);
+}
+const $ = s => document.querySelector(s);
+function toast(msg, ms=2500){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._timer); t._timer=setTimeout(()=>t.classList.remove("show"), ms); }
+
+document.getElementById("langTr").addEventListener("click", ()=> applyI18n("tr"));
+document.getElementById("langEn").addEventListener("click", ()=> applyI18n("en"));
+applyI18n(localStorage.getItem("velour.lang") || (navigator.language?.startsWith("tr") ? "tr" : "en"));
+
+/* Dropzone */
+const drop = $("#dropzone"), finput=$("#fileInput"), browse=$("#fileBrowse"), preview=$("#preview");
+const fileCount = $("#fileCount"), fileSize = $("#fileSize");
+browse.addEventListener("click", ()=> finput.click());
+["dragenter","dragover"].forEach(evt=> drop.addEventListener(evt, e=>{ e.preventDefault(); drop.classList.add("drag"); }));
+["dragleave","drop"].forEach(evt=> drop.addEventListener(evt, e=>{ e.preventDefault(); drop.classList.remove("drag"); }));
+drop.addEventListener("drop", e=> handleFiles(e.dataTransfer.files));
+finput.addEventListener("change", ()=> handleFiles(finput.files));
+
+let filesState = [];
+function bytesToMB(n){ return n/1024/1024 }
+function updateMeters(){
+  const totalBytes = filesState.reduce((a,f)=>a+f.size,0);
+  fileCount.textContent = `${filesState.length} / ${MAX_FILES}`;
+  const mb = bytesToMB(totalBytes); const total = MAX_TOTAL_SIZE/1024/1024;
+  const isEn = document.documentElement.lang==="en";
+  fileSize.textContent = isEn ? `${mb.toFixed(1)} MB / ${total} MB` : `${mb.toFixed(1).replace(".",",")} MB / ${total} MB`;
+}
+function handleFiles(list){
+  const T = I18N[document.documentElement.dataset.lang];
+  const arr=[...list]; let picked=arr.slice(0,MAX_FILES);
+  let total=0; const valid=[];
+  for(const f of picked){
+    if(!ALLOWED_TYPES.includes(f.type)){ toast(T.errType(f.name,f.type)); continue; }
+    if(f.size>MAX_FILE_SIZE){ toast(T.errBig(f.name,(MAX_FILE_SIZE/1024/1024)|0)); continue; }
+    if(total+f.size>MAX_TOTAL_SIZE){ toast(T.errTotal((MAX_TOTAL_SIZE/1024/1024)|0)); break; }
+    total+=f.size; valid.push(f);
+  }
+  filesState=valid; preview.innerHTML="";
+  filesState.forEach(file=>{
+    const card=document.createElement("div");
+    if(file.type.startsWith("image/")){
+      const img=document.createElement("img"); img.alt=file.name; card.appendChild(img);
+      const reader=new FileReader(); reader.onload=ev=> img.src=ev.target.result; reader.readAsDataURL(file);
+    }else{
+      card.innerHTML=`<div class="hint" style="border:var(--border);border-radius:10px;padding:8px">${file.name}</div>`;
+    }
+    preview.appendChild(card);
+  });
+  if(arr.length>MAX_FILES) toast(I18N[document.documentElement.dataset.lang].infoMaxFiles(MAX_FILES));
+  updateMeters();
+}
+
+/* draft */
+const KEY="velour.form.v6";
+function getFormData(){ return {
+  gameName: $("#gameName").value.trim(),
+  gameId: $("#gameId").value.trim(),
+  discord: $("#discord").value.trim(),
+  subscriber: $("#subscriber").value
+};}
+function saveDraft(){ toast(I18N[document.documentElement.dataset.lang].draftSaved); localStorage.setItem(KEY, JSON.stringify(getFormData())); }
+function loadDraft(){ try{ const raw=localStorage.getItem(KEY); if(raw){ const d=JSON.parse(raw);
+  $("#gameName").value=d.gameName||""; $("#gameId").value=d.gameId||"";
+  $("#discord").value=d.discord||""; $("#subscriber").value=d.subscriber||""; } }catch{} }
+document.getElementById("saveBtn").addEventListener("click", saveDraft);
+loadDraft();
+
+/* validate */
+function validate(){
+  if(document.getElementById("website").value) return false; // honeypot
+  const T=I18N[document.documentElement.dataset.lang];
+  let ok=true; document.getElementById("formErrors").textContent="";
+  ["#gameName","#gameId","#discord","#subscriber"].forEach(sel=>{
+    const el=$(sel); el.classList.remove("error");
+    if(!el.value || (el.tagName==="SELECT" && el.value==="")){ el.classList.add("error"); ok=false; }
+  });
+  if(!ok){ document.getElementById("formErrors").innerHTML=`<span class="error-msg">${T.errRequired}</span>`; }
+  return ok;
+}
+
+/* submit */
+const form=$("#gameForm"); const sendBtn=document.getElementById("sendBtn");
+async function sendToWorker(signal){
+  const d=getFormData(); const fd=new FormData();
+  fd.append("gameName", d.gameName); fd.append("gameId", d.gameId);
+  fd.append("discord", d.discord); fd.append("subscriber", d.subscriber);
+  filesState.forEach(f=> fd.append("attachments", f, f.name));
+  const res=await fetch(ENDPOINT,{method:"POST",body:fd,signal}); const text=await res.text();
+  let json={}; try{ json=JSON.parse(text);}catch{ json={ok:false,error:text||"Beklenmeyen cevap"};}
+  if(!res.ok||!json.ok) throw new Error(json.error||`Hata: HTTP ${res.status}`); return true;
+}
+form.addEventListener("submit", async e=>{
+  e.preventDefault(); if(!validate()) return;
+  const controller=new AbortController(); const t=setTimeout(()=>controller.abort(),30000);
+  sendBtn.disabled=true; sendBtn.classList.add("loading"); const T=I18N[document.documentElement.dataset.lang];
+  try{
+    await sendToWorker(controller.signal);
+    toast(T.sent); form.reset(); filesState=[]; preview.innerHTML=""; localStorage.removeItem(KEY); updateMeters();
+  }catch(err){ console.error(err); toast(T.failed(err.message||"Unknown"),4000); }
+  finally{ clearTimeout(t); sendBtn.disabled=false; sendBtn.classList.remove("loading"); }
+});
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  localStorage.removeItem(KEY); filesState=[]; preview.innerHTML=""; updateMeters();
+  toast(I18N[document.documentElement.dataset.lang].formReset);
+});
+</script>
+</body>
+</html>
