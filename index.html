@@ -43,7 +43,6 @@
   .grid{display:grid; gap:12px}
   @media (min-width: 720px){ .grid.cols-2{grid-template-columns:1fr 1fr} }
 
-  /* alanlar: “kutusuz” ve mobilde rahat dokunma */
   .field{position:relative}
   .field input,.field select,.field textarea{
     width:100%; padding:16px 14px 14px; border-radius:14px;
@@ -63,7 +62,6 @@
   .field input:focus+label,
   .field textarea:not(:placeholder-shown)+label,
   .field textarea:focus+label{ transform:translateY(-14px) scale(.9); color:color-mix(in oklab, var(--primary) 70%, var(--muted)); }
-  /* select için floating label fix */
   .field select:focus + label, .field select:valid + label{
     transform:translateY(-14px) scale(.9);
     color:color-mix(in oklab, var(--primary) 70%, var(--muted));
@@ -112,7 +110,6 @@
 
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
 
-  /* ===== MOBİL DÜZENLEMELER ===== */
   @media (max-width: 640px){
     .container{padding:12px}
     .card{border-radius:14px}
@@ -122,7 +119,7 @@
     .title{font-size:26px}
     .grid{gap:14px}
     .hint{font-size:.95rem}
-    .corner-buttons{display:none} /* mobilde köşe logolarını gizle */
+    .corner-buttons{display:none}
   }
 </style>
 </head>
@@ -134,7 +131,8 @@
     <div class="header">
       <h1 class="title" data-i="title">Çekiliş Formu</h1>
       <div class="right">
-        <div class="support"><i></i><span data-i="supported">Velour tarafından destekleniyor</span></div>
+        <!-- GÜNCEL ROZET -->
+        <div class="support"><i></i><span data-i="supported">Web, Velour tarafından hazırlanmıştır</span></div>
         <div class="lang" role="group" aria-label="Dil">
           <button type="button" id="trBtn" aria-pressed="true">TR</button>
           <button type="button" id="enBtn" aria-pressed="false">EN</button>
@@ -242,7 +240,7 @@ const ALLOWED_TYPES = ["image/jpeg","image/png","image/webp","image/gif","image/
 /* ====== Dil ====== */
 const tr = {
   title:"Çekiliş Formu",
-  supported:"Velour tarafından destekleniyor",
+  supported:"Web, Velour tarafından hazırlanmıştır",
   gameNameLabel:"Oyuncu Adı *", gameNameHint:"Örn: Velour",
   gameIdLabel:"Oyuncu Kimliği *", gameIdHint:"Oyundaki benzersiz kimliğin",
   discordLabel:"Discord Kullanıcı Adı *", discordHint:"Örn: Captain#1234 veya @kullanıcı",
@@ -260,7 +258,7 @@ const tr = {
 };
 const en = {
   title:"Giveaway Form",
-  supported:"Supported by Velour",
+  supported:"Website built by Velour",
   gameNameLabel:"Player Name *", gameNameHint:"e.g., Velour",
   gameIdLabel:"Player ID *", gameIdHint:"Your unique in-game identifier",
   discordLabel:"Discord Username *", discordHint:"e.g., Captain#1234 or @user",
@@ -314,7 +312,7 @@ function bytesToMB(n){ return Math.round(n/1024/1024); }
 function refreshCounters(){
   const total = filesState.reduce((a,f)=>a+f.size,0);
   fileCountEl.textContent = `${filesState.length} / ${MAX_FILES}`;
-  fileSizeEl.textContent  = `${bytesToMB(total)} MB / ${bytesToMB(MAX_TOTAL_SIZE)} MB`;
+  fileSizeEl.textContent  = `${bytesToMB(total)} MB / 24 MB`;
 }
 function handleFiles(list){
   const arr = [...list];
@@ -362,11 +360,11 @@ function setFormData(d){
 }
 function saveDraft(){ localStorage.setItem(KEY, JSON.stringify(getFormData())); toast(dict.toast_draft); }
 function loadDraft(){ try{ const raw=localStorage.getItem(KEY); if(raw) setFormData(JSON.parse(raw)); }catch(e){} }
-$("#saveBtn").addEventListener("click", saveDraft); loadDraft();
+loadDraft(); // #saveBtn yoksa hata olmasın diye sadece yüklemeyi çağırıyoruz
 
 /* ====== Doğrulama & Gönderim ====== */
 function validate(){
-  if (document.getElementById("website").value) { return false; }
+  if (document.getElementById("website").value) { return false; } // honeypot
   let ok=true; $("#formErrors").textContent="";
   ["#gameName","#gameId","#discord","#subscriber"].forEach(sel=>{
     const el=$(sel); el.classList.remove("error");
@@ -396,10 +394,15 @@ form.addEventListener("submit", async (e)=>{
   e.preventDefault(); if(!validate()) return;
   const controller = new AbortController(); const t = setTimeout(()=> controller.abort(), 30000);
   sendBtn.disabled = true; sendBtn.classList.add("loading");
-  try{ await sendToWorker(controller.signal); toast(dict.toast_sent);
-       form.reset(); filesState=[]; $("#preview").innerHTML=""; refreshCounters(); localStorage.removeItem(KEY);
-  }catch(err){ console.error(err); toast(dict.toast_fail_prefix + (err.message || "Bilinmeyen hata"), 4000);
-  }finally{ clearTimeout(t); sendBtn.disabled=false; sendBtn.classList.remove("loading"); }
+  try{
+    await sendToWorker(controller.signal);
+    toast(dict.toast_sent);
+    form.reset(); filesState=[]; $("#preview").innerHTML=""; refreshCounters(); localStorage.removeItem(KEY);
+  }catch(err){
+    console.error(err); toast(dict.toast_fail_prefix + (err.message || "Bilinmeyen hata"), 4000);
+  }finally{
+    clearTimeout(t); sendBtn.disabled=false; sendBtn.classList.remove("loading");
+  }
 });
 document.getElementById("resetBtn").addEventListener("click", ()=>{
   localStorage.removeItem(KEY); filesState=[]; $("#preview").innerHTML=""; refreshCounters(); toast(dict.toast_reset);
