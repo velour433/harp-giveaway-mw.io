@@ -2,53 +2,154 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Çekiliş Sonuç Sorgu</title>
+<title>Admin • Çekiliş</title>
 <meta name="color-scheme" content="dark light">
 <style>
-  :root{ --bg:#0b1020; --glass:#0f1733cc; --text:#ecf1ff; --muted:#a9b4d6; --primary:#5ea1ff; --border:1px solid rgba(255,255,255,.12); --radius:16px; --shadow:0 16px 40px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.25); }
+  :root{ --bg:#0b1020; --glass:#0f1733cc; --text:#ecf1ff; --muted:#a9b4d6; --primary:#5ea1ff; --accent:#34d399; --danger:#ff6b6b; --border:1px solid rgba(255,255,255,.12); --radius:16px; --shadow:0 16px 40px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.25); }
   @media (prefers-color-scheme: light){ :root{ --text:#0b1020; --muted:#4b5563; --glass:#ffffffd9; --bg:#eef3ff; --border:1px solid rgba(0,0,0,.08); --shadow:0 18px 36px rgba(2,6,23,.08), 0 2px 10px rgba(2,6,23,.06);} }
   *{box-sizing:border-box}
-  body{margin:0; color:var(--text); font:16px/1.5 ui-sans-serif,system-ui;
-    background:#000 url('https://images.wallpapersden.com/image/download/world-of-warships-gaming-2023_bW5namiUmZqaraWkpJRmbmdlrWZlbWU.jpg') center/cover fixed no-repeat;}
-  .overlay{position:fixed; inset:0; background: radial-gradient(1000px 600px at 20% 10%, rgba(0,0,0,.45), transparent 60%), linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55)); pointer-events:none;}
-  .wrap{max-width:700px; margin:min(6vh,64px) auto; padding:20px}
-  .card{background:var(--glass); border:var(--border); border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(10px) saturate(120%); overflow:hidden; padding:16px}
-  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-  input{padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:color-mix(in oklab, var(--glass) 92%, transparent); color:var(--text)}
-  .btn{border:var(--border); background:linear-gradient(180deg, color-mix(in oklab, var(--primary) 18%, var(--glass)) 0%, var(--glass) 80%); color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow)}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--text); font:16px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    background:#000 url('https://images.wallpapersden.com/image/download/world-of-warships-gaming-2023_bW5namiUmZqaraWkpJRmbmdlrWZlbWU.jpg') center/cover fixed no-repeat;
+  }
+  .overlay{position:fixed; inset:0; background:
+      radial-gradient(1000px 600px at 20% 10%, rgba(0,0,0,.45), transparent 60%),
+      linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55)); pointer-events:none;}
+  .wrap{max-width:1100px; margin:min(6vh,64px) auto; padding:20px}
+  .section{background:var(--glass); border:var(--border); border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(10px) saturate(120%); overflow:hidden; margin-bottom:16px}
+  .head{display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:var(--border)}
+  h2{margin:0; font-size:clamp(18px,2.2vw,22px)}
+  .content{padding:16px; display:grid; gap:12px}
+  .row{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+  .field{display:flex; flex-direction:column; gap:6px}
+  input[type="text"], input[type="datetime-local"], textarea{
+    padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
+    background:color-mix(in oklab, var(--glass) 92%, transparent); color:var(--text); min-width:260px;
+  }
+  textarea{min-height:80px}
+  .btn{border:var(--border); background:linear-gradient(180deg, color-mix(in oklab, var(--primary) 18%, var(--glass)) 0%, var(--glass) 80%);
+    color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow); min-height:40px}
+  .btn.ghost{background:transparent}
   .tag{border:var(--border); border-radius:999px; padding:6px 10px; background:color-mix(in oklab, var(--glass) 96%, transparent); color:var(--muted)}
+  .muted{color:var(--muted)}
+  table{width:100%; border-collapse:separate; border-spacing:0 8px}
+  th,td{padding:10px 12px; text-align:left}
+  tbody tr{background:color-mix(in oklab, var(--glass) 96%, transparent); border:var(--border)}
+  tbody tr td{border-top:var(--border); border-bottom:var(--border)}
+  tbody tr td:first-child{border-left:var(--border); border-top-left-radius:10px; border-bottom-left-radius:10px}
+  tbody tr td:last-child{border-right:var(--border); border-top-right-radius:10px; border-bottom-right-radius:10px}
+  .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block; margin-right:6px}
+  .ok{background:#34d399}.warn{background:#f59e0b}.off{background:#ff6b6b}
+  .toast{position:fixed; right:16px; bottom:16px; background:var(--glass); border:var(--border); padding:10px 12px; border-radius:10px; box-shadow:var(--shadow); opacity:0; transform:translateY(10px); transition:.2s}
+  .toast.show{opacity:1; transform:none}
+  /* lock modal */
+  .lock{position:fixed; inset:0; display:grid; place-items:center; z-index:10}
+  .panel{max-width:520px; width:92%; background:var(--glass); border:var(--border); border-radius:16px; padding:16px; box-shadow:var(--shadow); backdrop-filter:blur(10px) saturate(120%)}
+  [hidden]{display:none !important;}
+  .app-blur{filter:blur(6px);}  /* kilit açıkken blur */
+  .fadeout{animation:fade .2s ease forwards;}
+  @keyframes fade{to{opacity:0; transform:scale(.98);}}
 </style>
 </head>
 <body>
 <div class="overlay" aria-hidden="true"></div>
-<div class="wrap">
-  <div class="card">
-    <h2 style="margin-top:0">Sonuç Sorgu</h2>
-    <div class="row" style="margin-bottom:10px">
-      <input id="rid" placeholder="Raffle ID (örn: mw-august)" value="mw-august">
-      <input id="code" placeholder="Kod (ABCD-2345)">
-      <button class="btn" id="btn">Sorgula</button>
-    </div>
-    <div id="out" class="tag">Kodunu gir ve sorgula.</div>
+
+<!-- KİLİT -->
+<div id="lock" class="lock">
+  <div class="panel">
+    <h2 style="margin:0 0 10px">Admin Girişi</h2>
+    <div class="field"><label>Worker URL</label><input id="base" type="text" placeholder="https://...workers.dev"></div>
+    <div class="field"><label>Bearer Token</label><input id="token" type="text" placeholder="ADMIN_TOKEN"></div>
+    <div class="row"><button class="btn" id="enter">Giriş Yap</button></div>
+    <p class="muted">Bilgiler tarayıcında saklanır (localStorage).</p>
   </div>
 </div>
+
+<!-- APP -->
+<div class="wrap app-blur" id="app" hidden>
+  <section class="section">
+    <div class="head">
+      <h2>Çekiliş Seçimi</h2>
+      <span class="tag" id="state"><span class="status-dot off"></span>Bağlantı yok</span>
+    </div>
+    <div class="content">
+      <div class="row">
+        <div class="field"><label>Raffle ID</label><input id="rid" type="text" placeholder="mw-august"></div>
+        <button class="btn" id="useRid">Bu çekilişi yönet</button>
+      </div>
+      <div class="muted">Her şey seçtiğin <b>rid</b> altında saklanır ve çalışır.</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="head"><h2>Ayarlar</h2></div>
+    <div class="content">
+      <div class="row">
+        <div class="field"><label>Başlık</label><input id="title" type="text"></div>
+        <div class="field"><label>Başlangıç</label><input id="start" type="datetime-local"></div>
+        <div class="field"><label>Bitiş</label><input id="end" type="datetime-local"></div>
+        <div class="field"><label>Gönderen (e-posta)</label><input id="from" type="text"></div>
+      </div>
+      <div class="field"><label>Ödüller</label><textarea id="prizes"></textarea></div>
+      <div class="row"><button class="btn" id="save">Kaydet</button><button class="btn ghost" id="refresh">Durumu Yenile</button><button class="btn" id="closeNow">Şimdi Kapat</button></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="head"><h2>İşlemler</h2></div>
+    <div class="content">
+      <div class="row"><button class="btn" id="draw">Kura Çek</button><button class="btn" id="notifyEnd">Bitiş Maili Gönder</button></div>
+      <div class="row"><input id="codeManual" type="text" placeholder="Kod"><input id="placeManual" type="text" placeholder="Sıra"><button class="btn" id="markWinner">Manuel Kazanan Yap</button></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="head"><h2>Özet & Kazananlar</h2></div>
+    <div class="content" id="summary">—</div>
+  </section>
+
+  <section class="section">
+    <div class="head"><h2>Kayıtlar</h2></div>
+    <div class="content">
+      <div class="row"><input id="fEmail" type="text" placeholder="e-posta filtre"><input id="fDiscord" type="text" placeholder="discord filtre"><button class="btn" id="load">Yükle</button></div>
+      <div style="overflow:auto">
+        <table>
+          <thead><tr><th>Email</th><th>Oyuncu</th><th>ID</th><th>Discord</th><th>Abone</th><th>Tarih</th><th>Kazanan</th><th>Sıra</th></tr></thead>
+          <tbody id="rows"><tr><td class="muted" colspan="8">Henüz veri yok.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="toast" class="toast"></div>
+
 <script>
-const BASE = "https://spring-dream-b90b.velour662.workers.dev";
-document.getElementById("btn").onclick = async ()=>{
-  const rid=document.getElementById("rid").value.trim()||"default";
-  const code=document.getElementById("code").value.trim();
-  if(!code) return document.getElementById("out").textContent="Kod gir";
-  const r=await fetch(`${BASE}/check?code=${encodeURIComponent(code)}&rid=${encodeURIComponent(rid)}`);
-  const j=await r.json();
-  if(!j.ok){ document.getElementById("out").textContent=j.error||"Hata"; return; }
-  const st = j.result.winner ? "🎉 KAZANDIN!" : "Bu kez olmadı.";
-  const p = j.result.place ? ` • Sıra: ${j.result.place}` : "";
-  document.getElementById("out").textContent = `${st}${p} • Kayıt: ${new Date(j.result.joinedAt).toLocaleString("tr-TR")}`;
+const ls=localStorage,$=s=>document.querySelector(s);const toastEl=$("#toast");
+function toast(x){toastEl.textContent=typeof x==="string"?x:JSON.stringify(x);toastEl.classList.add("show");clearTimeout(toastEl._t);toastEl._t=setTimeout(()=>toastEl.classList.remove("show"),2600);}
+function sanitizeBase(v){v=(v||"").trim();if(v&&!/^https?:\/\//i.test(v))v="https://"+v;return v.replace(/\/+$/,"");}
+function hdrs(){const t=ls.getItem("adm.token")||"";return t?{ "Authorization":"Bearer "+t }:{};}
+function base(){return sanitizeBase(ls.getItem("adm.base")||"");}
+function setState(cl,tx){$("#state").innerHTML=`<span class="status-dot ${cl}"></span>${tx}`;}
+
+$("#enter").onclick=async()=>{
+  let b=sanitizeBase($("#base").value);const t=($("#token").value||"").trim();
+  if(!b||!t) return toast("URL ve token gerekli");
+  ls.setItem("adm.base",b); ls.setItem("adm.token",t);
+  try{
+    const ping=await fetch(b+"/");if(!ping.ok){toast("Ping HTTP "+ping.status);return;}
+    const r=await fetch(b+"/admin/settings?rid=default",{headers:hdrs()});
+    if(r.status===401){toast("Token hatalı");return;}
+    if(!r.ok){toast("Admin ping HTTP "+r.status);return;}
+    // Başarılı giriş
+    $("#lock").classList.add("fadeout");
+    setTimeout(()=>$("#lock").hidden=true,180);
+    $("#app").hidden=false;
+    $("#app").classList.remove("app-blur");
+    setState("ok","Bağlı"); toast("Giriş OK");
+  }catch(e){toast("Hata: "+(e.message||e));}
 };
-// auto-fill from query
-const qp=new URL(location.href).searchParams;
-if(qp.get("code")){ document.getElementById("code").value=qp.get("code"); }
-if(qp.get("rid")){ document.getElementById("rid").value=qp.get("rid"); }
 </script>
 </body>
 </html>
