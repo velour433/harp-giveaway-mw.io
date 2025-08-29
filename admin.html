@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Çekiliş Sonuç Sorgu</title>
+<meta name="color-scheme" content="dark light">
+<style>
+  :root{ --bg:#0b1020; --glass:#0f1733cc; --text:#ecf1ff; --muted:#a9b4d6; --primary:#5ea1ff; --border:1px solid rgba(255,255,255,.12); --radius:16px; --shadow:0 16px 40px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.25); }
+  @media (prefers-color-scheme: light){ :root{ --text:#0b1020; --muted:#4b5563; --glass:#ffffffd9; --bg:#eef3ff; --border:1px solid rgba(0,0,0,.08); --shadow:0 18px 36px rgba(2,6,23,.08), 0 2px 10px rgba(2,6,23,.06);} }
+  *{box-sizing:border-box}
+  body{margin:0; color:var(--text); font:16px/1.5 ui-sans-serif,system-ui;
+    background:#000 url('https://images.wallpapersden.com/image/download/world-of-warships-gaming-2023_bW5namiUmZqaraWkpJRmbmdlrWZlbWU.jpg') center/cover fixed no-repeat;}
+  .overlay{position:fixed; inset:0; background: radial-gradient(1000px 600px at 20% 10%, rgba(0,0,0,.45), transparent 60%), linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55)); pointer-events:none;}
+  .wrap{max-width:700px; margin:min(6vh,64px) auto; padding:20px}
+  .card{background:var(--glass); border:var(--border); border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(10px) saturate(120%); overflow:hidden; padding:16px}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  input{padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:color-mix(in oklab, var(--glass) 92%, transparent); color:var(--text)}
+  .btn{border:var(--border); background:linear-gradient(180deg, color-mix(in oklab, var(--primary) 18%, var(--glass)) 0%, var(--glass) 80%); color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow)}
+  .tag{border:var(--border); border-radius:999px; padding:6px 10px; background:color-mix(in oklab, var(--glass) 96%, transparent); color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="overlay" aria-hidden="true"></div>
+<div class="wrap">
+  <div class="card">
+    <h2 style="margin-top:0">Sonuç Sorgu</h2>
+    <div class="row" style="margin-bottom:10px">
+      <input id="rid" placeholder="Raffle ID (örn: mw-august)" value="mw-august">
+      <input id="code" placeholder="Kod (ABCD-2345)">
+      <button class="btn" id="btn">Sorgula</button>
+    </div>
+    <div id="out" class="tag">Kodunu gir ve sorgula.</div>
+  </div>
+</div>
+<script>
+const BASE = "https://spring-dream-b90b.velour662.workers.dev";
+document.getElementById("btn").onclick = async ()=>{
+  const rid=document.getElementById("rid").value.trim()||"default";
+  const code=document.getElementById("code").value.trim();
+  if(!code) return document.getElementById("out").textContent="Kod gir";
+  const r=await fetch(`${BASE}/check?code=${encodeURIComponent(code)}&rid=${encodeURIComponent(rid)}`);
+  const j=await r.json();
+  if(!j.ok){ document.getElementById("out").textContent=j.error||"Hata"; return; }
+  const st = j.result.winner ? "🎉 KAZANDIN!" : "Bu kez olmadı.";
+  const p = j.result.place ? ` • Sıra: ${j.result.place}` : "";
+  document.getElementById("out").textContent = `${st}${p} • Kayıt: ${new Date(j.result.joinedAt).toLocaleString("tr-TR")}`;
+};
+// auto-fill from query
+const qp=new URL(location.href).searchParams;
+if(qp.get("code")){ document.getElementById("code").value=qp.get("code"); }
+if(qp.get("rid")){ document.getElementById("rid").value=qp.get("rid"); }
+</script>
+</body>
+</html>
