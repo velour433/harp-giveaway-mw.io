@@ -104,23 +104,21 @@
   .toast{position:fixed; inset:auto 16px 16px auto; background:var(--glass); border:var(--border); padding:10px 12px; border-radius:10px; opacity:0; transform:translateY(10px); transition:.2s; box-shadow:var(--shadow)}
   .toast.show{opacity:1; transform:none}
 
-  .corner-buttons{ position:fixed; left:16px; bottom:16px; display:flex; gap:10px; z-index:3; }
-  .corner-buttons a{ width:48px;height:48px;border-radius:12px; border:var(--border); background:var(--glass); display:grid; place-items:center; box-shadow:var(--shadow) }
-  .corner-buttons img{max-width:80%; max-height:80%}
+  /* ------ ŞIK ROZET BAR ------ */
+  .badge-bar{ position:fixed; left:16px; bottom:16px; display:flex; gap:12px; z-index:3; }
+  .badge{
+    width:56px; height:56px; border-radius:16px; border:var(--border);
+    background:color-mix(in oklab, var(--glass) 96%, transparent);
+    display:grid; place-items:center; box-shadow:var(--shadow); overflow:hidden;
+    transition:transform .15s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .badge img{ max-width:80%; max-height:80%; filter:grayscale(30%) contrast(1.05); transition:filter .2s ease, transform .2s ease; }
+  .badge:hover{ transform:translateY(-2px); background:color-mix(in oklab, var(--primary) 10%, var(--glass)); }
+  .badge:hover img{ filter:none; transform:scale(1.03); }
+  .badge:focus-visible{ outline:none; box-shadow:var(--ring); }
+  @media (max-width: 640px){ .badge-bar{display:none} }
 
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
-
-  @media (max-width: 640px){
-    .container{padding:12px}
-    .card{border-radius:14px}
-    .header{flex-direction:column; align-items:flex-start; gap:10px}
-    .right{width:100%; justify-content:flex-start}
-    .support{width:fit-content}
-    .title{font-size:26px}
-    .grid{gap:14px}
-    .hint{font-size:.95rem}
-    .corner-buttons{display:none}
-  }
 </style>
 </head>
 <body>
@@ -131,7 +129,6 @@
     <div class="header">
       <h1 class="title" data-i="title">Çekiliş Formu</h1>
       <div class="right">
-        <!-- GÜNCEL ROZET -->
         <div class="support"><i></i><span data-i="supported">Web, Velour tarafından hazırlanmıştır</span></div>
         <div class="lang" role="group" aria-label="Dil">
           <button type="button" id="trBtn" aria-pressed="true">TR</button>
@@ -168,7 +165,12 @@
             <option value="Evet">Evet</option>
             <option value="Hayır">Hayır</option>
           </select>
-          <label for="subscriber" data-i="subscriberLabel">Abone misin? *</label>
+          <label for="subscriber" data-i="subscriberLabel">YouTube’a abone misin? *</label>
+          <!-- tıklanabilir link: label DIŞINDA -->
+          <p class="hint" data-i="subscriberHelp">
+            YouTube kanalımıza buradan ulaşabilirsin:
+            <a href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer">@mwharp</a>
+          </p>
         </div>
       </div>
 
@@ -176,7 +178,7 @@
         <div>
           <div class="row">
             <strong data-i="uploadTitle">Kanıt / Görsel Yükleme</strong>
-            <span class="hint" data-i="uploadHint">Abonelik ekran görüntüsü vb. (max 6 görsel | tekil ≤ 8 MB | toplam ≤ 24 MB)</span>
+            <span class="hint" data-i="uploadHint">YouTube abonelik ekran görüntüsü vb. (max 6 görsel | tekil ≤ 8 MB | toplam ≤ 24 MB)</span>
           </div>
 
           <div id="dropzone" class="dropzone" aria-label="Dosya yükleme alanı">
@@ -198,7 +200,7 @@
 
         <div class="notice">
           <i aria-hidden="true"></i>
-          <div data-i="alert">⚠ Abone olmayanların formları dikkate alınmayacaktır.</div>
+          <div data-i="alert">⚠ YouTube kanalımıza abone olmayanların formları dikkate alınmayacaktır. <a href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">Kanalı aç</a></div>
         </div>
       </div>
 
@@ -213,15 +215,15 @@
   </div>
 </div>
 
-<!-- köşe kısayolları (mobilde gizlenir) -->
-<div class="corner-buttons" aria-label="Köşe kısayolları">
-  <a title="Modern Warships">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/6/67/Modern_Warships_logos.png" alt="Modern Warships logo">
+<!-- ŞIK ROZET BAR (metin yok, sadece ikonlar) -->
+<nav class="badge-bar" aria-label="Destekleyen rozetler">
+  <a class="badge"  target="_blank" rel="noopener noreferrer" title="Modern Warships">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/67/Modern_Warships_logos.png" alt="Modern Warships">
   </a>
-  <a title="Modern Warships">
-    <img src="https://media.discordapp.net/attachments/1306329798603309126/1410747508031754310/WhatsApp_Gorsel_2025-08-29_saat_01.05.00_72237f98-Photoroom.png?ex=68b22480&is=68b0d300&hm=0addf1e5c02b9003ed1a95c30bdba48af4246a3545cfa618446502d4b6b1a68f&=&format=webp&quality=lossless&width=930&height=930" alt="Modern Warships logo">
+  <a class="badge" href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer" title="HARP YouTube">
+    <img src="https://media.discordapp.net/attachments/1306329798603309126/1410747508031754310/WhatsApp_Gorsel_2025-08-29_saat_01.05.00_72237f98-Photoroom.png?ex=68b22480&is=68b0d300&hm=0addf1e5c02b9003ed1a95c30bdba48af4246a3545cfa618446502d4b6b1a68f&=&format=webp&quality=lossless&width=930&height=930" alt="HARP">
   </a>
-</div>
+</nav>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -240,13 +242,14 @@ const tr = {
   gameNameLabel:"Oyuncu Adı *", gameNameHint:"Örn: Velour",
   gameIdLabel:"Oyuncu Kimliği *", gameIdHint:"Oyundaki benzersiz kimliğin",
   discordLabel:"Discord Kullanıcı Adı *", discordHint:"Örn: Captain#1234 veya @kullanıcı",
-  subscriberLabel:"Abone misin? *",
+  subscriberLabel:"YouTube’a abone misin? *",
+  subscriberHelp:'YouTube kanalımıza buradan ulaşabilirsin: <a href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer">@mwharp</a>',
   uploadTitle:"Kanıt / Görsel Yükleme",
-  uploadHint:"Abonelik ekran görüntüsü vb. (max 6 görsel | tekil ≤ 8 MB | toplam ≤ 24 MB)",
+  uploadHint:"YouTube abonelik ekran görüntüsü vb. (max 6 görsel | tekil ≤ 8 MB | toplam ≤ 24 MB)",
   dropText1:"Dosyayı sürükleyip bırak", dropText2:"veya tıkla.",
   chooseFile:"Dosya Seç",
   sendInfo:"Gönderince veriler <b>arka uca</b> iletilir; kopya e-posta <b>sadece yönetim</b> adresine gider.",
-  alert:"⚠ Abone olmayanların formları dikkate alınmayacaktır.",
+  alert:"⚠ YouTube kanalımıza abone olmayanların formları dikkate alınmayacaktır.",
   reset:"Sıfırla", draft:"Taslak", send:"Gönder",
   err_required:"Lütfen zorunlu alanları doldurun.",
   toast_draft:"Taslak kaydedildi.", toast_reset:"Form sıfırlandı.", toast_sent:"Gönderildi! Teşekkürler.",
@@ -258,13 +261,14 @@ const en = {
   gameNameLabel:"Player Name *", gameNameHint:"e.g., Velour",
   gameIdLabel:"Player ID *", gameIdHint:"Your unique in-game identifier",
   discordLabel:"Discord Username *", discordHint:"e.g., Captain#1234 or @user",
-  subscriberLabel:"Are you a subscriber? *",
+  subscriberLabel:"Are you subscribed on YouTube? *",
+  subscriberHelp:'You can reach our YouTube channel here: <a href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer">@mwharp</a>',
   uploadTitle:"Proof / Image Upload",
-  uploadHint:"Screenshot of subscription etc. (max 6 files | single ≤ 8 MB | total ≤ 24 MB)",
+  uploadHint:"YouTube subscription screenshot etc. (max 6 files | single ≤ 8 MB | total ≤ 24 MB)",
   dropText1:"Drag & drop files", dropText2:"or click.",
   chooseFile:"Choose File",
   sendInfo:"On submit, data goes to the <b>backend</b>; a copy email is sent to <b>admins only</b>.",
-  alert:"⚠ Entries from non-subscribers will not be considered.",
+  alert:"⚠ Entries from users not subscribed to our YouTube channel will not be considered.",
   reset:"Reset", draft:"Draft", send:"Submit",
   err_required:"Please fill the required fields.",
   toast_draft:"Draft saved.", toast_reset:"Form reset.", toast_sent:"Sent! Thank you.",
@@ -279,6 +283,7 @@ function applyI18n(){
   setText('[data-i="gameIdLabel"]','gameIdLabel'); setText('[data-i="gameIdHint"]','gameIdHint');
   setText('[data-i="discordLabel"]','discordLabel'); setText('[data-i="discordHint"]','discordHint');
   setText('[data-i="subscriberLabel"]','subscriberLabel');
+  setText('[data-i="subscriberHelp"]','subscriberHelp'); // yeni
   setText('[data-i="uploadTitle"]','uploadTitle'); setText('[data-i="uploadHint"]','uploadHint');
   setText('[data-i="dropText1"]','dropText1'); setText('[data-i="dropText2"]','dropText2');
   setText('[data-i="chooseFile"]','chooseFile'); setText('[data-i="sendInfo"]','sendInfo');
@@ -356,7 +361,7 @@ function setFormData(d){
 }
 function saveDraft(){ localStorage.setItem(KEY, JSON.stringify(getFormData())); toast(dict.toast_draft); }
 function loadDraft(){ try{ const raw=localStorage.getItem(KEY); if(raw) setFormData(JSON.parse(raw)); }catch(e){} }
-loadDraft(); // #saveBtn yoksa hata olmasın diye sadece yüklemeyi çağırıyoruz
+loadDraft();
 
 /* ====== Doğrulama & Gönderim ====== */
 function validate(){
@@ -406,4 +411,3 @@ document.getElementById("resetBtn").addEventListener("click", ()=>{
 </script>
 </body>
 </html>
-
