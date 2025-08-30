@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Çekiliş • HARP</title>
+<title>Çekiliş Formu</title>
 <meta name="color-scheme" content="dark light">
 <style>
   :root{
@@ -104,6 +104,7 @@
   .toast.show{opacity:1; transform:none}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
 
+  /* 404 kartı */
   .hidden{display:none !important;}
 </style>
 </head>
@@ -112,35 +113,13 @@
 
 <div class="container">
 
-  <!-- LANDING (rid yoksa) -->
-  <div id="cardLanding" class="card hidden">
-    <div class="header">
-      <h1 class="title">Çekiliş Seç</h1>
-      <div class="right"><span class="hint">rid girerek devam et</span></div>
-    </div>
-    <div style="padding:18px; display:grid; gap:12px">
-      <div class="row">
-        <div class="field" style="min-width:260px">
-          <input id="ridInput" placeholder=" " maxlength="64" />
-          <label for="ridInput">Raffle ID (rid)</label>
-        </div>
-        <button class="btn" id="goRid">Git</button>
-      </div>
-      <p class="hint">Örnek: <code>?rid=mw-august</code> • Linkin tamamı: <code>…/index.html?rid=RID</code></p>
-    </div>
-  </div>
-
-  <!-- 404 (rid var ama bulunamadı) -->
+  <!-- 404 -->
   <div id="card404" class="card hidden" role="alert">
     <div class="header"><h1 class="title">404 — Çekiliş Bulunamadı</h1></div>
     <div style="padding:18px">
-      <p>Bu <b>rid</b> için bir çekiliş bulunamadı veya kaldırılmış.</p>
-      <p class="hint">Linki kontrol et ya da aşağıdan başka bir <b>rid</b> gir.</p>
-      <div class="row" style="margin:12px 0">
-        <div class="field" style="min-width:260px"><input id="ridInput404" placeholder=" "><label for="ridInput404">Raffle ID (rid)</label></div>
-        <button class="btn" id="goRid404">Git</button>
-      </div>
-      <a class="btn ghost" href="./">Ana sayfa</a>
+      <p>İstediğin <b>rid</b> için bir çekiliş bulunamadı veya kaldırılmış.</p>
+      <p class="hint">Linki kontrol et (ör. <code>?rid=mw-august</code>).</p>
+      <a class="btn" href="./">Ana sayfa</a>
     </div>
   </div>
 
@@ -244,7 +223,7 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script>
-/* ====== Worker URL ====== */
+/* ====== Worker URL (sabit) ====== */
 const WORKER_BASE = "https://spring-dream-b90b.velour662.workers.dev";
 const ENDPOINT = WORKER_BASE + "/submit";
 
@@ -253,48 +232,39 @@ const params = new URLSearchParams(location.search);
 const currentRid = (params.get("rid")||"").trim().toLowerCase();
 document.getElementById("rid").value = currentRid;
 
-function showCard(id){
-  ["cardLanding","card404","cardForm"].forEach(x=>document.getElementById(x).classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-}
-async function loadMetaOrShow(){
-  if(!currentRid){ showCard("cardLanding"); return; }
+async function loadMetaOr404(){
+  if(!currentRid){ show404(); return; }
   try{
     const r = await fetch(`${WORKER_BASE}/meta?rid=${encodeURIComponent(currentRid)}`, { mode:"cors" });
-    if(r.status===404){ showCard("card404"); return; }
-    if(!r.ok){ showCard("card404"); return; }
+    if(r.status===404){ show404(); return; }
+    if(!r.ok){ show404(); return; }
     const j = await r.json();
     const m = j.meta || {};
     // Başlık
     document.getElementById("pageTitle").textContent = m.title || "Çekiliş";
-    document.title = (m.title || "Çekiliş");
+    document.title = (m.title || "Çekiliş Formu");
     // Tarih & durum
     const s = m.startAt ? new Date(m.startAt).toLocaleString("tr-TR") : "—";
     const e = m.endAt   ? new Date(m.endAt).toLocaleString("tr-TR")   : "—";
     document.getElementById("dateInfo").textContent = `${s} → ${e}${m.closed ? " • Kapalı":""}`;
-    // YouTube
+    // YouTube link & handle
     const link = m.youtubeLink || "https://www.youtube.com/";
     const handle = m.youtubeHandle || "@mwharp";
-    document.getElementById("ytChannel").href = link;
-    document.getElementById("ytChannel").textContent = handle;
-    document.getElementById("ytChannel2").href = link;
-    showCard("cardForm");
+    const yt1 = document.getElementById("ytChannel");
+    const yt2 = document.getElementById("ytChannel2");
+    yt1.href = link; yt1.textContent = handle;
+    yt2.href = link;
+    // kartları göster
+    document.getElementById("card404").classList.add("hidden");
+    document.getElementById("cardForm").classList.remove("hidden");
   }catch(e){
-    showCard("card404");
+    show404();
   }
 }
-
-/* landing & 404 rid yönlendiricileri */
-document.getElementById("goRid").onclick = ()=>{
-  const rid = (document.getElementById("ridInput").value||"").trim().toLowerCase();
-  if(!rid) return;
-  const u = new URL(location.href); u.searchParams.set("rid", rid); location.href = u.toString();
-};
-document.getElementById("goRid404").onclick = ()=>{
-  const rid = (document.getElementById("ridInput404").value||"").trim().toLowerCase();
-  if(!rid) return;
-  const u = new URL(location.href); u.searchParams.set("rid", rid); location.href = u.toString();
-};
+function show404(){
+  document.getElementById("cardForm").classList.add("hidden");
+  document.getElementById("card404").classList.remove("hidden");
+}
 
 /* ====== Dil ====== */
 const tr = {
@@ -303,6 +273,7 @@ const tr = {
   discordLabel:"Discord Kullanıcı Adı *", discordHint:"Örn: Captain#1234 veya @kullanıcı",
   emailLabel:"E-posta *", emailHint:"Kod bu adrese gönderilir",
   subscriberLabel:"YouTube’a abone misin? *",
+  subscriberHelp:'You can reach our YouTube channel here',
   uploadTitle:"Kanıt / Görsel Yükleme",
   uploadHint:"YouTube abonelik ekran görüntüsü vb. (max 6 dosya | tekil ≤ 8 MB | toplam ≤ 9 MB)",
   dropText1:"Dosyayı sürükleyip bırak", dropText2:"veya tıkla.",
@@ -319,6 +290,7 @@ const en = {
   discordLabel:"Discord Username *", discordHint:"e.g., Captain#1234 or @user",
   emailLabel:"Email *", emailHint:"Code will be sent here",
   subscriberLabel:"Are you subscribed on YouTube? *",
+  subscriberHelp:'You can reach our YouTube channel here',
   uploadTitle:"Proof / Image Upload",
   uploadHint:"YouTube subscription screenshot etc. (max 6 files | single ≤ 8 MB | total ≤ 9 MB)",
   dropText1:"Drag & drop files", dropText2:"or click.",
@@ -347,17 +319,18 @@ document.getElementById('trBtn').addEventListener('click', ()=>{ dict=tr; docume
 document.getElementById('enBtn').addEventListener('click', ()=>{ dict=en; document.getElementById('enBtn').setAttribute('aria-pressed','true'); document.getElementById('trBtn').setAttribute('aria-pressed','false'); applyI18n(); });
 applyI18n();
 
+/* ====== Yardımcılar ====== */
+const $ = s => document.querySelector(s);
+function toast(msg, ms=2500){ const t=$("#toast"); t.textContent = typeof msg==="string"?msg:JSON.stringify(msg); t.classList.add("show"); clearTimeout(t._timer); t._timer=setTimeout(()=>t.classList.remove("show"), ms); }
+
 /* ====== Dropzone & Sayaç ====== */
 const MAX_FILES = 6;
 const MAX_FILE_SIZE = 8 * 1024 * 1024;
 const MAX_TOTAL_SIZE = 9 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg","image/png","image/webp","image/gif","image/heic","image/heif","application/pdf"];
 
-const $q = s => document.querySelector(s);
-function toast(msg, ms=2500){ const t=$q("#toast"); t.textContent = typeof msg==="string"?msg:JSON.stringify(msg); t.classList.add("show"); clearTimeout(t._timer); t._timer=setTimeout(()=>t.classList.remove("show"), ms); }
-
-const drop = $q("#dropzone"), finput=$q("#fileInput"), browse=$q("#fileBrowse"), preview=$q("#preview");
-const fileCountEl=$q("#fileCount"), fileSizeEl=$q("#fileSize");
+const drop = $("#dropzone"), finput=$("#fileInput"), browse=$("#fileBrowse"), preview=$("#preview");
+const fileCountEl=$("#fileCount"), fileSizeEl=$("#fileSize");
 browse.addEventListener("click", ()=> finput.click());
 ["dragenter","dragover"].forEach(evt=> drop.addEventListener(evt, e=>{ e.preventDefault(); drop.classList.add("drag"); }));
 ["dragleave","drop"].forEach(evt=> drop.addEventListener(evt, e=>{ e.preventDefault(); drop.classList.remove("drag"); }));
@@ -401,27 +374,27 @@ refreshCounters();
 /* ====== Doğrulama & Gönderim ====== */
 function validate(){
   if (document.getElementById("website").value) { return false; } // honeypot
-  let ok=true; $q("#formErrors").textContent="";
+  let ok=true; $("#formErrors").textContent="";
   ["#gameName","#gameId","#discord","#email","#subscriber"].forEach(sel=>{
-    const el=$q(sel); el.classList.remove("error");
+    const el=$(sel); el.classList.remove("error");
     if(!el.value || (el.tagName==="SELECT" && el.value==="")){
       el.classList.add("error"); ok=false;
     }
   });
-  if(!ok){ $q("#formErrors").innerHTML=`<span class="error-msg">${dict.err_required}</span>`; }
+  if(!ok){ $("#formErrors").innerHTML=`<span class="error-msg">${dict.err_required}</span>`; }
   return ok;
 }
 async function sendToWorker(signal){
   const fd = new FormData();
-  fd.append("rid", $q("#rid").value.trim());
-  fd.append("gameName", $q("#gameName").value.trim());
-  fd.append("gameId", $q("#gameId").value.trim());
-  fd.append("discord", $q("#discord").value.trim());
-  fd.append("email", $q("#email").value.trim());
-  fd.append("subscriber", $q("#subscriber").value);
+  fd.append("rid", $("#rid").value.trim());
+  fd.append("gameName", $("#gameName").value.trim());
+  fd.append("gameId", $("#gameId").value.trim());
+  fd.append("discord", $("#discord").value.trim());
+  fd.append("email", $("#email").value.trim());
+  fd.append("subscriber", $("#subscriber").value);
   filesState.forEach((file)=> fd.append("attachments", file, file.name));
 
-  const res = await fetch(ENDPOINT + "?rid=" + encodeURIComponent($q("#rid").value.trim()), {
+  const res = await fetch(ENDPOINT + "?rid=" + encodeURIComponent($("#rid").value.trim()), {
     method:"POST", body: fd, signal, mode:"cors"
   });
   const text = await res.text(); let json={};
@@ -429,7 +402,7 @@ async function sendToWorker(signal){
   if(!res.ok || !json.ok){ throw new Error(json.error || `Hata: HTTP ${res.status}`); }
   return true;
 }
-const form = $q("#gameForm"); const sendBtn = $q("#sendBtn");
+const form = $("#gameForm"); const sendBtn = $("#sendBtn");
 form.addEventListener("submit", async (e)=>{
   e.preventDefault(); if(!validate()) return;
   const controller = new AbortController(); const t = setTimeout(()=> controller.abort(), 30000);
@@ -437,19 +410,19 @@ form.addEventListener("submit", async (e)=>{
   try{
     await sendToWorker(controller.signal);
     toast(dict.toast_sent);
-    form.reset(); filesState=[]; $q("#preview").innerHTML=""; refreshCounters();
+    form.reset(); filesState=[]; $("#preview").innerHTML=""; refreshCounters();
   }catch(err){
     console.error(err); toast(dict.toast_fail_prefix + (err.message || "Bilinmeyen hata"), 4000);
   }finally{
     clearTimeout(t); sendBtn.disabled=false; sendBtn.classList.remove("loading");
   }
 });
-$q("#resetBtn").addEventListener("click", ()=>{
-  filesState=[]; $q("#preview").innerHTML=""; refreshCounters(); toast(dict.toast_reset);
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  filesState=[]; $("#preview").innerHTML=""; refreshCounters(); toast(dict.toast_reset);
 });
 
 /* init */
-loadMetaOrShow();
+loadMetaOr404();
 </script>
 </body>
 </html>
