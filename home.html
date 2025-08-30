@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HARP • Çekiliş Platformu</title>
+<meta name="description" content="HARP — RID tabanlı çoklu çekilişler, kanıt yükleme, e-posta bildirimleri ve canlı admin paneli.">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="data:;base64,=">
+<meta property="og:title" content="HARP • Çekiliş Platformu">
+<meta property="og:description" content="RID tabanlı çoklu çekilişler, kanıt yükleme ve canlı admin.">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --bg:#0b1020; --glass:#0f1733cc; --text:#ecf1ff; --muted:#a9b4d6;
+    --primary:#5ea1ff; --accent:#34d399; --danger:#ff6b6b;
+    --border:1px solid rgba(255,255,255,.12); --radius:16px;
+    --shadow:0 16px 40px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.25);
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --text:#0b1020; --muted:#4b5563; --glass:#ffffffd9; --bg:#eef3ff;
+      --border:1px solid rgba(0,0,0,.08); --shadow:0 18px 36px rgba(2,6,23,.08), 0 2px 10px rgba(2,6,23,.06); }
+  }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{
+    margin:0; color:var(--text); font:16px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    background:#000 url('https://images.wallpapersden.com/image/download/world-of-warships-gaming-2023_bW5namiUmZqaraWkpJRmbmdlrWZlbWU.jpg') center/cover fixed no-repeat;
+  }
+  .overlay{position:fixed; inset:0; background:
+    radial-gradient(1200px 700px at 15% 5%, rgba(0,0,0,.45), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.60)); pointer-events:none;}
+  .wrap{max-width:1160px; margin:min(6vh,64px) auto; padding:20px}
+
+  /* nav */
+  .nav{display:flex; justify-content:space-between; align-items:center; gap:12px;
+    padding:12px 14px; background:color-mix(in oklab, var(--glass) 94%, transparent);
+    border:var(--border); border-radius:14px; box-shadow:var(--shadow)}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
+  .pulse{width:10px;height:10px;border-radius:50%; background:var(--accent); box-shadow:0 0 14px var(--accent); animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{50%{transform:scale(1.15)}}
+  .links{display:flex; gap:8px; flex-wrap:wrap}
+  .btn{border:var(--border); background:linear-gradient(180deg, color-mix(in oklab, var(--primary) 18%, var(--glass)) 0%, var(--glass) 80%);
+    color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow); text-decoration:none}
+  .btn.ghost{background:transparent}
+  .btn.big{padding:14px 18px; border-radius:14px; font-size:1.05rem}
+  .btn:disabled{opacity:.6; cursor:not-allowed}
+
+  /* layout cards */
+  .grid{display:grid; gap:16px}
+  .hero{grid-template-columns:1.15fr .85fr}
+  @media (max-width: 980px){ .hero{grid-template-columns:1fr} }
+  .card{background:var(--glass); border:var(--border); border-radius:var(--radius);
+    box-shadow:var(--shadow); backdrop-filter:blur(10px) saturate(120%); overflow:hidden}
+  .sec{padding:18px}
+
+  h1{margin:0 0 8px; font-size:clamp(28px,4.6vw,48px); line-height:1.08}
+  h2{margin:0 0 10px; font-size:clamp(18px,2.8vw,28px)}
+  .muted{color:var(--muted)}
+  .tag{border:var(--border); border-radius:999px; padding:6px 10px; background:color-mix(in oklab, var(--glass) 96%, transparent); color:var(--muted); font-weight:600}
+
+  /* RID box */
+  .ridbox{display:grid; grid-template-columns:1fr auto auto; gap:10px; align-items:center; margin-top:14px}
+  @media (max-width:720px){ .ridbox{grid-template-columns:1fr; } }
+  input[type="search"]{padding:14px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
+    background:color-mix(in oklab, var(--glass) 92%, transparent); color:var(--text); min-height:46px}
+  .status{display:flex; align-items:center; gap:8px}
+  .dot{width:8px;height:8px;border-radius:50%}
+  .ok{background:#10b981}.warn{background:#f59e0b}.err{background:#ef4444}
+
+  /* raffle list */
+  .raffles{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+  @media (max-width: 980px){ .raffles{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width: 640px){ .raffles{grid-template-columns:1fr} }
+  .raffle{padding:14px; border-radius:14px; border:var(--border); background:color-mix(in oklab, var(--glass) 96%, transparent); display:flex; flex-direction:column; gap:10px}
+  .r-top{display:flex; justify-content:space-between; gap:10px; align-items:center}
+  .r-title{font-weight:700}
+  .r-dates{font-size:.95rem; color:var(--muted)}
+  .empty{padding:14px; border-radius:12px; border:var(--border); text-align:center; color:var(--muted)}
+
+  /* features */
+  .features{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+  @media (max-width: 980px){ .features{grid-template-columns:1fr 1fr} }
+  @media (max-width: 640px){ .features{grid-template-columns:1fr} }
+  .feat{padding:14px; border-radius:14px; border:var(--border); background:color-mix(in oklab, var(--glass) 96%, transparent)}
+  .feat b{display:block; margin-bottom:6px}
+
+  /* footer */
+  footer{margin-top:16px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:color-mix(in oklab, var(--glass) 94%, transparent); border:var(--border); border-radius:14px}
+  .toast{position:fixed; right:16px; bottom:16px; background:var(--glass); border:var(--border); padding:10px 12px; border-radius:10px; box-shadow:var(--shadow);
+    opacity:0; transform:translateY(10px); transition:.2s}
+  .toast.show{opacity:1; transform:none}
+</style>
+</head>
+<body>
+<div class="overlay" aria-hidden="true"></div>
+<div class="wrap">
+
+  <!-- NAV -->
+  <div class="nav">
+    <div class="brand"><span class="pulse" aria-hidden="true"></span> <span>HARP • Giveaway</span></div>
+    <div class="links">
+      <a class="btn ghost" href="./admin.html">Admin</a>
+      <a class="btn" href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener">@mwharp</a>
+      <a class="btn ghost" href="https://velour433.github.io/harp-giveaway-mw.io/">Proje</a>
+    </div>
+  </div>
+
+  <!-- HERO + RID -->
+  <div class="grid hero" style="margin-top:16px">
+    <section class="card sec">
+      <h1>Topluluğun için <span style="color:var(--primary); text-decoration:underline">şeffaf çekilişler</span></h1>
+      <p class="muted">Kanıt yükleme, e-posta bildirimleri ve RID ile çoklu çekiliş yönetimi — Cloudflare Workers üzerinde hızlı ve güvenilir.</p>
+
+      <div class="ridbox">
+        <input id="rid" type="search" placeholder="RID gir (örn: r-250830-AB7Q)" autocomplete="off">
+        <button id="join" class="btn big">Formu Aç</button>
+        <div id="ridState" class="status tag"><span class="dot warn"></span><span>RID bekleniyor</span></div>
+      </div>
+
+      <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap">
+        <span class="tag">Dosyalar: GitHub Raw</span>
+        <span class="tag">Mail: Resend</span>
+        <span class="tag">Depo: KV</span>
+      </div>
+    </section>
+
+    <section class="card sec">
+      <h2>Nasıl çalışır?</h2>
+      <div class="grid">
+        <div class="feat"><b>1) Oluştur</b><span class="muted">Admin’de yeni RID üret, başlık/tarih/YouTube bilgilerini kaydet.</span></div>
+        <div class="feat"><b>2) Paylaş</b><span class="muted">Katılımcılara <code>form sayfası + ?rid=RID</code> linkini gönder.</span></div>
+        <div class="feat"><b>3) Topla</b><span class="muted">Katılımcılar kanıtlarını yükler, e-posta ile kod alır.</span></div>
+        <div class="feat"><b>4) Kapat</b><span class="muted">Bitişte kapat, istersen toplu “bitti” e-postası yolla.</span></div>
+      </div>
+      <div style="margin-top:10px">
+        <a class="btn" href="./admin.html">Admin Paneline Git</a>
+        <a class="btn ghost" href="./form.html?rid=demo" title="Örnek">Örnek Form</a>
+      </div>
+    </section>
+  </div>
+
+  <!-- AKTİF ÇEKİLİŞLER -->
+  <section class="card sec" aria-labelledby="h-raffles">
+    <h2 id="h-raffles">Aktif Çekilişler</h2>
+    <div id="raffles" class="raffles" role="list"></div>
+    <div id="emptyR" class="empty" style="display:none">Şu an listelenecek çekiliş yok.</div>
+  </section>
+
+  <!-- ÖZELLİKLER -->
+  <section class="card sec">
+    <h2>Özellikler</h2>
+    <div class="features">
+      <div class="feat"><b>Çoklu çekiliş (RID)</b><span class="muted">Her çekiliş ayrı kimlikte; yenisi eskisini silmez.</span></div>
+      <div class="feat"><b>Canlı admin</b><span class="muted">Durum, düzenleme, kapatma, dışa aktar ve tekil kayıt silme.</span></div>
+      <div class="feat"><b>Kanıt yükleme</b><span class="muted">Görsel/PDF yükleme; toplam ve tekil boyut sınırı.</span></div>
+      <div class="feat"><b>Anti-spam</b><span class="muted">Aynı RID içinde e-posta bazlı tekil kayıt.</span></div>
+      <div class="feat"><b>Bildirimler</b><span class="muted">Kayıt ve bitiş e-postaları (Resend).</span></div>
+      <div class="feat"><b>Hızlı mimari</b><span class="muted">Cloudflare Workers + KV + GitHub Raw.</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <span class="brand"><span class="pulse"></span> HARP • Giveaway</span>
+    <div class="links">
+      <a class="btn ghost" href="./admin.html">Admin</a>
+      <a class="btn" href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener">@mwharp</a>
+    </div>
+  </footer>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ===================== AYAR ===================== */
+/* Worker tabanı — senin worker’ını yaz: */
+const WORKER_BASE = "https://spring-dream-b90b.velour662.workers.dev";
+/* Form dosyanın adı: index.html veya form.html */
+const FORM_PAGE = "form.html";
+
+/* ===================== UI YARDIMCI ===================== */
+const $ = s => document.querySelector(s);
+function toast(m,ms=2400){ const t=$("#toast"); t.textContent=m; t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),ms); }
+
+/* ===================== RID KONTROL ===================== */
+const ridInput = $("#rid");
+const ridState = $("#ridState");
+const joinBtn  = $("#join");
+
+/* URL ile rid geldiyse inputa yaz */
+const urlRid = new URLSearchParams(location.search).get("rid");
+if(urlRid){ ridInput.value = urlRid; checkRid(urlRid, {silent:true}); }
+
+async function checkRid(rid, {silent=false}={}){
+  rid = (rid||"").trim().toLowerCase();
+  if(!rid){ setState("warn","RID bekleniyor"); return null; }
+  try{
+    const r = await fetch(`${WORKER_BASE}/meta?rid=${encodeURIComponent(rid)}`, {mode:"cors"});
+    if(!r.ok){ setState("err","Bulunamadı"); return null; }
+    const j = await r.json(); const m=j.meta||{};
+    setState("ok", m.title || "Geçerli RID");
+    return rid;
+  }catch(e){
+    if(!silent) toast("Ağ hatası");
+    setState("err","Ağ hatası");
+    return null;
+  }
+}
+function setState(type, text){
+  const dot = `<span class="dot ${type==='ok'?'ok':type==='err'?'err':'warn'}"></span>`;
+  ridState.innerHTML = dot + `<span>${text}</span>`;
+}
+
+ridInput.addEventListener("input", ()=>checkRid(ridInput.value,{silent:true}));
+joinBtn.addEventListener("click", async ()=>{
+  const rid = await checkRid(ridInput.value);
+  if(!rid) return toast("Geçerli bir RID gir.");
+  location.href = `./${FORM_PAGE}?rid=${encodeURIComponent(rid)}`;
+});
+
+/* ===================== AKTİF ÇEKİLİŞLER ===================== */
+/* Worker’da /raffles (GET) uç noktası olması varsayılır:
+   { ok:true, items:[ {rid,title,startAt,endAt,closed,youtubeHandle,youtubeLink}, ... ] } */
+async function loadRaffles(){
+  const holder = $("#raffles"); const empty = $("#emptyR");
+  holder.innerHTML = "";
+  try{
+    const r = await fetch(`${WORKER_BASE}/raffles`, {mode:"cors"});
+    if(!r.ok){ empty.style.display="block"; return; }
+    const j = await r.json(); const items = (j.items||[]).slice(0,12);
+    if(items.length===0){ empty.style.display="block"; return; }
+    empty.style.display="none";
+    for(const it of items){
+      const s = it.startAt ? new Date(it.startAt).toLocaleString("tr-TR") : "—";
+      const e = it.endAt   ? new Date(it.endAt).toLocaleString("tr-TR")   : "—";
+      const status = it.closed ? "Kapalı" : "Açık";
+      const card = document.createElement("div");
+      card.className="raffle";
+      card.innerHTML = `
+        <div class="r-top">
+          <div class="r-title">${escapeHtml(it.title||"Çekiliş")}</div>
+          <span class="tag">${status}</span>
+        </div>
+        <div class="r-dates">${s} → ${e}</div>
+        <div style="display:flex; gap:8px; margin-top:auto; flex-wrap:wrap">
+          <a class="btn" href="./${FORM_PAGE}?rid=${encodeURIComponent(it.rid)}">Formu Aç</a>
+          <button class="btn ghost" data-copy="${it.rid}">RID Kopyala</button>
+        </div>`;
+      holder.appendChild(card);
+    }
+    holder.addEventListener("click", e=>{
+      const btn = e.target.closest("button[data-copy]");
+      if(!btn) return;
+      const rid = btn.getAttribute("data-copy");
+      navigator.clipboard.writeText(rid).then(()=>toast("RID kopyalandı"));
+    }, { once:true });
+  }catch(e){
+    empty.style.display="block";
+  }
+}
+function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m])); }
+
+/* ===================== BAŞLAT ===================== */
+loadRaffles();
+</script>
+</body>
+</html>
