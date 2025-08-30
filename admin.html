@@ -25,12 +25,14 @@
   .field{display:flex; flex-direction:column; gap:6px}
   input[type="text"], input[type="datetime-local"], textarea{
     padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
-    background:color-mix(in oklab, var(--glass) 92%, transparent); color:var(--text); min-width:260px;
+    background:color-mix(in oklab, var(--glass) 92%, transparent); color:var(--text); min-width:220px;
   }
   textarea{min-height:80px}
   .btn{border:var(--border); background:linear-gradient(180deg, color-mix(in oklab, var(--primary) 18%, var(--glass)) 0%, var(--glass) 80%);
     color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow); min-height:40px}
   .btn.ghost{background:transparent}
+  .btn.danger{background:linear-gradient(180deg, color-mix(in oklab, var(--danger) 24%, var(--glass)) 0%, var(--glass) 80%);}
+  .small{font-size:.9rem}
   .tag{border:var(--border); border-radius:999px; padding:6px 10px; background:color-mix(in oklab, var(--glass) 96%, transparent); color:var(--muted)}
   .muted{color:var(--muted)}
   table{width:100%; border-collapse:separate; border-spacing:0 8px}
@@ -43,11 +45,10 @@
   .ok{background:#34d399}.warn{background:#f59e0b}.off{background:#ff6b6b}
   .toast{position:fixed; right:16px; bottom:16px; background:var(--glass); border:var(--border); padding:10px 12px; border-radius:10px; box-shadow:var(--shadow); opacity:0; transform:translateY(10px); transition:.2s}
   .toast.show{opacity:1; transform:none}
-  /* lock modal */
   .lock{position:fixed; inset:0; display:grid; place-items:center; z-index:10}
   .panel{max-width:520px; width:92%; background:var(--glass); border:var(--border); border-radius:16px; padding:16px; box-shadow:var(--shadow); backdrop-filter:blur(10px) saturate(120%)}
   [hidden]{display:none !important;}
-  .app-blur{filter:blur(6px);}  /* kilit açıkken blur */
+  .app-blur{filter:blur(6px);}
   .fadeout{animation:fade .2s ease forwards;}
   @keyframes fade{to{opacity:0; transform:scale(.98);}}
 </style>
@@ -62,12 +63,42 @@
     <div class="field"><label>Worker URL</label><input id="base" type="text" placeholder="https://...workers.dev"></div>
     <div class="field"><label>Bearer Token</label><input id="token" type="text" placeholder="ADMIN_TOKEN"></div>
     <div class="row"><button class="btn" id="enter">Giriş Yap</button></div>
-    <p class="muted">Bilgiler tarayıcında saklanır (localStorage).</p>
+    <p class="muted small">Bilgiler tarayıcında saklanır (localStorage).</p>
   </div>
 </div>
 
 <!-- APP -->
 <div class="wrap app-blur" id="app" hidden>
+
+  <!-- TÜM ÇEKİLİŞLER -->
+  <section class="section">
+    <div class="head">
+      <h2>Çekilişler (Tümü)</h2>
+      <div class="row">
+        <div class="field">
+          <label>Form Sayfa URL Temeli</label>
+          <input id="formBase" type="text" placeholder="http://127.0.0.1:3000/index.html">
+        </div>
+        <button class="btn" id="saveFormBase">Kaydet</button>
+        <button class="btn ghost" id="reloadRaffles">Yenile</button>
+        <label class="small"><input type="checkbox" id="liveToggle"> Canlı yenile (10 sn)</label>
+      </div>
+    </div>
+    <div class="content" style="overflow:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>rid</th><th>Başlık</th><th>Zaman</th><th>Durum</th><th>Kayıt</th><th>Kazanan</th><th>Sayfa</th><th>Aksiyon</th>
+          </tr>
+        </thead>
+        <tbody id="raffleRows">
+          <tr><td class="muted" colspan="8">—</td></tr>
+        </tbody>
+      </table>
+      <div class="muted small">* Örnek: <code>http://127.0.0.1:3000/index.html</code> → linke <code>?rid=RID</code> eklenir.</div>
+    </div>
+  </section>
+
   <section class="section">
     <div class="head">
       <h2>Çekiliş Seçimi</h2>
@@ -75,7 +106,7 @@
     </div>
     <div class="content">
       <div class="row">
-        <div class="field"><label>Raffle ID</label><input id="rid" type="text" placeholder="mw-august"></div>
+        <div class="field"><label>Raffle ID (rid)</label><input id="rid" type="text" placeholder="mw-august"></div>
         <button class="btn" id="useRid">Bu çekilişi yönet</button>
       </div>
       <div class="muted">Her şey seçtiğin <b>rid</b> altında saklanır ve çalışır.</div>
@@ -86,21 +117,36 @@
     <div class="head"><h2>Ayarlar</h2></div>
     <div class="content">
       <div class="row">
-        <div class="field"><label>Başlık</label><input id="title" type="text"></div>
+        <div class="field"><label>Başlık</label><input id="title" type="text" placeholder="Örn: Ağustos Çekilişi"></div>
         <div class="field"><label>Başlangıç</label><input id="start" type="datetime-local"></div>
         <div class="field"><label>Bitiş</label><input id="end" type="datetime-local"></div>
-        <div class="field"><label>Gönderen (e-posta)</label><input id="from" type="text"></div>
+        <div class="field"><label>Gönderen (e-posta)</label><input id="from" type="text" placeholder='Velour &lt;onboarding@resend.dev&gt;'></div>
       </div>
-      <div class="field"><label>Ödüller</label><textarea id="prizes"></textarea></div>
-      <div class="row"><button class="btn" id="save">Kaydet</button><button class="btn ghost" id="refresh">Durumu Yenile</button><button class="btn" id="closeNow">Şimdi Kapat</button></div>
+      <div class="row">
+        <div class="field"><label>YouTube Handle</label><input id="ytHandle" type="text" placeholder="@mwharp"></div>
+        <div class="field"><label>YouTube Link</label><input id="ytLink" type="text" placeholder="https://www.youtube.com/@mwharp"></div>
+      </div>
+      <div class="row">
+        <button class="btn" id="save">Kaydet</button>
+        <button class="btn ghost" id="refresh">Durumu Yenile</button>
+        <button class="btn" id="closeNow">Şimdi Kapat</button>
+        <button class="btn" id="notifyEnd">Bitiş Maili Gönder</button>
+      </div>
+      <div class="muted small" id="metaNote">—</div>
     </div>
   </section>
 
   <section class="section">
     <div class="head"><h2>İşlemler</h2></div>
     <div class="content">
-      <div class="row"><button class="btn" id="draw">Kura Çek</button><button class="btn" id="notifyEnd">Bitiş Maili Gönder</button></div>
-      <div class="row"><input id="codeManual" type="text" placeholder="Kod"><input id="placeManual" type="text" placeholder="Sıra"><button class="btn" id="markWinner">Manuel Kazanan Yap</button></div>
+      <div class="row">
+        <input id="codeManual" type="text" placeholder="Kod (ABCD-EFGH)">
+        <button class="btn" id="markWinner">Manuel Kazanan Yap</button>
+        <button class="btn danger" id="deleteEntry">Bu Kodu Sil</button>
+      </div>
+      <div class="row">
+        <button class="btn danger" id="deleteRaffle">Bu Çekilişi Tamamen Sil</button>
+      </div>
     </div>
   </section>
 
@@ -112,11 +158,16 @@
   <section class="section">
     <div class="head"><h2>Kayıtlar</h2></div>
     <div class="content">
-      <div class="row"><input id="fEmail" type="text" placeholder="e-posta filtre"><input id="fDiscord" type="text" placeholder="discord filtre"><button class="btn" id="load">Yükle</button></div>
+      <div class="row">
+        <input id="fEmail" type="text" placeholder="e-posta filtre">
+        <input id="fDiscord" type="text" placeholder="discord filtre">
+        <button class="btn" id="load">Yükle</button>
+        <button class="btn ghost" id="exportJson">JSON İndir</button>
+      </div>
       <div style="overflow:auto">
         <table>
-          <thead><tr><th>Email</th><th>Oyuncu</th><th>ID</th><th>Discord</th><th>Abone</th><th>Tarih</th><th>Kazanan</th><th>Sıra</th></tr></thead>
-          <tbody id="rows"><tr><td class="muted" colspan="8">Henüz veri yok.</td></tr></tbody>
+          <thead><tr><th>Email</th><th>Oyuncu</th><th>ID</th><th>Discord</th><th>Abone</th><th>Tarih</th><th>Kazanan</th></tr></thead>
+          <tbody id="rows"><tr><td class="muted" colspan="7">Henüz veri yok.</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -126,30 +177,303 @@
 <div id="toast" class="toast"></div>
 
 <script>
+/* ===== helpers & storage ===== */
 const ls=localStorage,$=s=>document.querySelector(s);const toastEl=$("#toast");
 function toast(x){toastEl.textContent=typeof x==="string"?x:JSON.stringify(x);toastEl.classList.add("show");clearTimeout(toastEl._t);toastEl._t=setTimeout(()=>toastEl.classList.remove("show"),2600);}
 function sanitizeBase(v){v=(v||"").trim();if(v&&!/^https?:\/\//i.test(v))v="https://"+v;return v.replace(/\/+$/,"");}
 function hdrs(){const t=ls.getItem("adm.token")||"";return t?{ "Authorization":"Bearer "+t }:{};}
 function base(){return sanitizeBase(ls.getItem("adm.base")||"");}
 function setState(cl,tx){$("#state").innerHTML=`<span class="status-dot ${cl}"></span>${tx}`;}
+function fmtDate(n){return n? new Date(n).toLocaleString("tr-TR"):"—";}
+function escapeHtml(s){ return (s||"").toString().replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c])); }
 
+/* ===== Public Form URL Base (local) ===== */
+function getFormBase(){ return localStorage.getItem("adm.formBase") || "http://127.0.0.1:3000/index.html"; }
+function setFormBase(v){ localStorage.setItem("adm.formBase", (v||"").trim()); }
+function buildPublicUrl(rid){
+  const base = getFormBase().trim();
+  if (/\.html?$/i.test(base)) return base + "?rid=" + encodeURIComponent(rid);
+  return base.replace(/\/?$/,'/') + "?rid=" + encodeURIComponent(rid);
+}
+$("#formBase").value = getFormBase();
+$("#saveFormBase").onclick = ()=>{ setFormBase($("#formBase").value||""); toast("Form URL kaydedildi"); };
+
+/* ===== lock (login) ===== */
 $("#enter").onclick=async()=>{
   let b=sanitizeBase($("#base").value);const t=($("#token").value||"").trim();
   if(!b||!t) return toast("URL ve token gerekli");
   ls.setItem("adm.base",b); ls.setItem("adm.token",t);
   try{
-    const ping=await fetch(b+"/");if(!ping.ok){toast("Ping HTTP "+ping.status);return;}
+    const ping=await fetch(b+"/"); if(!ping.ok){toast("Ping HTTP "+ping.status);return;}
     const r=await fetch(b+"/admin/settings?rid=default",{headers:hdrs()});
     if(r.status===401){toast("Token hatalı");return;}
     if(!r.ok){toast("Admin ping HTTP "+r.status);return;}
-    // Başarılı giriş
-    $("#lock").classList.add("fadeout");
-    setTimeout(()=>$("#lock").hidden=true,180);
-    $("#app").hidden=false;
-    $("#app").classList.remove("app-blur");
+    $("#lock").classList.add("fadeout"); setTimeout(()=>$("#lock").hidden=true,180);
+    $("#app").hidden=false; $("#app").classList.remove("app-blur");
     setState("ok","Bağlı"); toast("Giriş OK");
+    await loadRaffles();
   }catch(e){toast("Hata: "+(e.message||e));}
 };
+
+/* ===== rid scope ===== */
+let currentRid="default";
+$("#useRid").onclick = async () => {
+  const v = ($("#rid").value||"").trim();
+  if(!v) return toast("rid gerekli");
+  currentRid = v.toLowerCase();
+  await loadSettings();
+  await refreshSummary();
+};
+
+/* ===== settings load/save ===== */
+async function loadSettings(){
+  try{
+    const r = await fetch(base()+"/admin/settings?rid="+encodeURIComponent(currentRid), { headers: hdrs() });
+    if(!r.ok) return toast("Settings HTTP "+r.status);
+    const j = await r.json(); const s = j.settings || {};
+    $("#title").value = s.title || "";
+    $("#from").value  = s.mailFrom || "";
+    $("#start").value = s.startAt ? new Date(s.startAt).toISOString().slice(0,16) : "";
+    $("#end").value   = s.endAt ? new Date(s.endAt).toISOString().slice(0,16) : "";
+    $("#ytHandle").value = s.youtubeHandle || "@mwharp";
+    $("#ytLink").value   = s.youtubeLink   || "https://www.youtube.com/@mwharp";
+    setState("ok","Bağlı ("+currentRid+")");
+    $("#metaNote").textContent = `Başlangıç: ${fmtDate(s.startAt)} • Bitiş: ${fmtDate(s.endAt)} • Kapalı: ${s.closed? "Evet":"Hayır"}`;
+    toast("rid yüklendi");
+  }catch(e){ toast("Hata: "+(e.message||e)); }
+}
+
+$("#refresh").onclick = async ()=>{ await loadSettings(); await refreshSummary(); };
+
+/* Kaydet */
+$("#save").onclick = async ()=>{
+  try{
+    const body = {
+      title:  $("#title").value.trim(),
+      mailFrom: $("#from").value.trim(),
+      startAt: $("#start").value ? new Date($("#start").value).getTime() : null,
+      endAt:   $("#end").value ? new Date($("#end").value).getTime() : null,
+      youtubeHandle: $("#ytHandle").value.trim() || "@mwharp",
+      youtubeLink:   $("#ytLink").value.trim() || "https://www.youtube.com/@mwharp"
+    };
+    const r = await fetch(base()+"/admin/settings?rid="+encodeURIComponent(currentRid), {
+      method:"POST", headers:{ "Content-Type":"application/json", ...hdrs() }, body: JSON.stringify(body)
+    });
+    if(!r.ok) return toast("Kaydet HTTP "+r.status);
+    toast("Kaydedildi");
+    await loadSettings();
+    await loadRaffles();
+  }catch(e){ toast("Hata: "+(e.message||e)); }
+};
+
+$("#closeNow").onclick = async ()=>{
+  const r = await fetch(base()+"/admin/close?rid="+encodeURIComponent(currentRid), { method:"POST", headers: hdrs() });
+  if(!r.ok) return toast("Close HTTP "+r.status);
+  toast("Kapatıldı");
+  await loadSettings();
+  await loadRaffles();
+};
+
+$("#notifyEnd").onclick = async ()=>{
+  const r = await fetch(base()+"/admin/notify-end?rid="+encodeURIComponent(currentRid), { method:"POST", headers: hdrs() });
+  const j = await r.json().catch(()=>({}));
+  toast(r.ok ? ("Mail: "+JSON.stringify(j.result)) : ("Notify HTTP "+r.status));
+};
+
+/* ===== mark & delete ===== */
+$("#markWinner").onclick = async ()=>{
+  const code = ($("#codeManual").value||"").trim();
+  if(!code) return toast("Kod gerekli");
+  const r = await fetch(base()+"/admin/mark-winner?rid="+encodeURIComponent(currentRid), {
+    method:"POST", headers:{ "Content-Type":"application/json", ...hdrs() }, body: JSON.stringify({ code })
+  });
+  if(!r.ok){ toast("Mark HTTP "+r.status); return; }
+  toast("Kazanan işaretlendi");
+  await refreshSummary();
+};
+
+$("#deleteEntry").onclick = async ()=>{
+  const code = ($("#codeManual").value||"").trim();
+  if(!code) return toast("Kod gerekli");
+  if(!confirm(`Bu başvuruyu silmek istediğine emin misin?\nKod: ${code}`)) return;
+  const r = await fetch(base()+"/admin/entry?rid="+encodeURIComponent(currentRid)+"&code="+encodeURIComponent(code), {
+    method:"DELETE", headers: hdrs()
+  });
+  if(!r.ok){ toast("Sil HTTP "+r.status); return; }
+  toast("Kayıt silindi");
+  await refreshSummary();
+};
+
+$("#deleteRaffle").onclick = async ()=>{
+  if(!currentRid) return toast("rid seçili değil");
+  if(!confirm(`Tüm çekilişi SİLECEKSİN!\nRID: ${currentRid}\nTüm kayıtlar, ayarlar silinir. Emin misin?`)) return;
+  const r = await fetch(base()+"/admin/raffle?rid="+encodeURIComponent(currentRid), { method:"DELETE", headers: hdrs() });
+  if(!r.ok){ toast("Raffle Sil HTTP "+r.status); return; }
+  toast("Çekiliş silindi");
+  await loadRaffles();
+  $("#summary").textContent = "—";
+};
+
+/* ===== export + summary + table ===== */
+async function fetchExport(){
+  const r = await fetch(base()+"/admin/export?rid="+encodeURIComponent(currentRid), { headers: hdrs() });
+  if(!r.ok) throw new Error("Export HTTP "+r.status);
+  const j = await r.json();
+  return j.rows || [];
+}
+
+async function refreshSummary(){
+  try{
+    const rows = await fetchExport();
+    const fe=($("#fEmail").value||"").trim().toLowerCase();
+    const fd=($("#fDiscord").value||"").trim().toLowerCase();
+    const filtered = rows.filter(x=>{
+      const okE = !fe || (x.email||"").toLowerCase().includes(fe);
+      const okD = !fd || (x.discord||"").toLowerCase().includes(fd);
+      return okE && okD;
+    });
+
+    const tb=$("#rows");
+    tb.innerHTML="";
+    if(filtered.length===0){
+      tb.innerHTML = `<tr><td class="muted" colspan="7">Kayıt yok.</td></tr>`;
+    }else{
+      filtered.forEach(r=>{
+        const tr=document.createElement("tr");
+        const dt = r.createdAt ? new Date(r.createdAt).toLocaleString("tr-TR"):"—";
+        tr.innerHTML = `
+          <td>${escapeHtml(r.email)}</td>
+          <td>${escapeHtml(r.gameName||"")}</td>
+          <td>${escapeHtml(r.gameId||"")}</td>
+          <td>${escapeHtml(r.discord||"")}</td>
+          <td>${escapeHtml(r.subscriber||"")}</td>
+          <td>${dt}</td>
+          <td>${r.winner? "🏆 Evet":"—"}</td>
+        `;
+        tb.appendChild(tr);
+      });
+    }
+
+    const total = rows.length;
+    const winners = rows.filter(x=>x.winner).length;
+    const subYes = rows.filter(x=>(x.subscriber||"").toLowerCase()==="evet").length;
+    const subNo  = rows.filter(x=>(x.subscriber||"").toLowerCase()==="hayır").length;
+
+    $("#summary").innerHTML = `
+      <div class="row">
+        <span class="tag">Toplam: <b>${total}</b></span>
+        <span class="tag">Kazanan: <b>${winners}</b></span>
+        <span class="tag">Abone (Evet): <b>${subYes}</b></span>
+        <span class="tag">Abone (Hayır): <b>${subNo}</b></span>
+      </div>
+    `;
+  }catch(e){ toast("Özet hata: "+(e.message||e)); }
+}
+
+$("#load").onclick = refreshSummary;
+
+$("#exportJson").onclick = async ()=>{
+  try{
+    const rows = await fetchExport();
+    const blob = new Blob([JSON.stringify({ rid:currentRid, rows }, null, 2)], { type:"application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `export_${currentRid}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }catch(e){ toast("Export hata: "+(e.message||e)); }
+};
+
+/* ===== Raffles list ==== */
+async function loadRaffles(){
+  try{
+    const r = await fetch(base()+"/admin/raffles", { headers: hdrs() });
+    if(!r.ok) { toast("Raffles HTTP "+r.status); return; }
+    const j = await r.json();
+    const list = j.raffles || [];
+    const tb = $("#raffleRows");
+    tb.innerHTML = "";
+    if(list.length===0){
+      tb.innerHTML = `<tr><td class="muted" colspan="8">Kayıtlı çekiliş yok.</td></tr>`;
+      return;
+    }
+    list.sort((a,b)=> (a.rid>b.rid?1:-1));
+    for (const it of list){
+      const url = buildPublicUrl(it.rid);
+      const when = `${fmtDate(it.startAt)} → ${fmtDate(it.endAt)}`;
+      const st   = it.closed ? "Kapalı" : "Açık";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><b>${escapeHtml(it.rid)}</b></td>
+        <td>${escapeHtml(it.title)}</td>
+        <td class="small">${when}</td>
+        <td>${st}</td>
+        <td>${it.totals?.entries ?? 0}</td>
+        <td>${it.totals?.winners ?? 0}</td>
+        <td>
+          <a href="${url}" target="_blank" rel="noopener">Aç</a>
+          <button class="btn ghost small" data-copy="${url}">Kopyala</button>
+        </td>
+        <td>
+          <button class="btn small" data-manage="${escapeHtml(it.rid)}">Yönet</button>
+          <button class="btn danger small" data-del="${escapeHtml(it.rid)}">Sil</button>
+        </td>
+      `;
+      tb.appendChild(tr);
+    }
+    tb.querySelectorAll('button[data-copy]').forEach(b=>{
+      b.onclick=()=>{ navigator.clipboard.writeText(b.getAttribute('data-copy')); toast("Link kopyalandı"); };
+    });
+    tb.querySelectorAll('button[data-manage]').forEach(b=>{
+      b.onclick=async ()=>{
+        const rid = b.getAttribute('data-manage');
+        $("#rid").value = rid;
+        currentRid = rid;
+        await loadSettings();
+        await refreshSummary();
+        toast("Yönetim yükleniyor: "+rid);
+      };
+    });
+    tb.querySelectorAll('button[data-del]').forEach(b=>{
+      b.onclick=async ()=>{
+        const rid = b.getAttribute('data-del');
+        if(!confirm(`Çekiliş silinsin mi?\nRID: ${rid}`)) return;
+        const r = await fetch(base()+"/admin/raffle?rid="+encodeURIComponent(rid), { method:"DELETE", headers: hdrs() });
+        if(!r.ok){ toast("Sil HTTP "+r.status); return; }
+        toast("Silindi");
+        await loadRaffles();
+        if (rid===currentRid) { $("#summary").textContent="—"; }
+      };
+    });
+  }catch(e){ toast("Raffles hata: "+(e.message||e)); }
+}
+$("#reloadRaffles").onclick = loadRaffles;
+
+/* ===== canlı yenile ===== */
+let liveTimer=null;
+$("#liveToggle").addEventListener("change", (e)=>{
+  if (e.target.checked){
+    liveTimer = setInterval(async ()=>{
+      await loadRaffles();
+      if (currentRid) {
+        // Ayarlar metası sık değişmez; sadece özet & tabloyu çek
+        await refreshSummary();
+      }
+    }, 10000);
+    toast("Canlı yenileme aktif");
+  } else {
+    clearInterval(liveTimer); liveTimer=null;
+    toast("Canlı yenileme kapalı");
+  }
+});
+
+/* ===== init (restore last) ===== */
+(function restore(){
+  const b=ls.getItem("adm.base"), t=ls.getItem("adm.token");
+  if(b) $("#base").value = b;
+  if(t) $("#token").value = t;
+  $("#formBase").value = getFormBase();
+})();
 </script>
 </body>
 </html>
