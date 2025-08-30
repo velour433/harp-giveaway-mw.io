@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Çekiliş Formu</title>
+<meta name="color-scheme" content="dark light">
+<style>
+  :root{
+    --bg:#0b1020; --glass:#0f1733cc; --text:#ecf1ff; --muted:#a9b4d6;
+    --primary:#5ea1ff; --accent:#34d399; --danger:#ff6b6b;
+    --ring:0 0 0 3px color-mix(in oklab, var(--primary) 35%, transparent);
+    --border:1px solid rgba(255,255,255,.12); --radius:16px;
+    --shadow:0 16px 40px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.25);
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --text:#0b1020; --muted:#4b5563; --glass:#ffffffd9; --bg:#eef3ff;
+      --border:1px solid rgba(0,0,0,.08);
+      --shadow:0 18px 36px rgba(2,6,23,.08), 0 2px 10px rgba(2,6,23,.06);
+    }
+  }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{
+    margin:0; color:var(--text); font:16px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    background:#000 url('https://images.wallpapersden.com/image/download/world-of-warships-gaming-2023_bW5namiUmZqaraWkpJRmbmdlrWZlbWU.jpg') center/cover fixed no-repeat;
+  }
+  .overlay{position:fixed; inset:0; background:
+    radial-gradient(1000px 600px at 20% 10%, rgba(0,0,0,.45), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55)); pointer-events:none;}
+  .container{max-width:980px; margin:min(6vh,64px) auto; padding:20px}
+  .card{background:var(--glass); border:var(--border); border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(10px) saturate(120%); overflow:hidden}
+  .header{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 20px; border-bottom:var(--border); flex-wrap:wrap}
+  .title{margin:0; font-size:clamp(22px,3vw,32px); letter-spacing:.2px}
+  .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .support{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:14px; border:var(--border); background:color-mix(in oklab, var(--glass) 96%, transparent); font-weight:700}
+  .support i{width:8px;height:8px;border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent)}
+  .lang{display:flex; gap:8px}
+  .lang button{border:var(--border); background:var(--glass); color:var(--text); padding:10px 12px; border-radius:12px; cursor:pointer}
+  .lang button[aria-pressed="true"]{box-shadow:var(--ring)}
+  form{display:grid; gap:16px; padding:18px}
+  .grid{display:grid; gap:12px}
+  @media (min-width: 720px){ .grid.cols-2{grid-template-columns:1fr 1fr} }
+
+  .field{position:relative}
+  .field input,.field select,.field textarea{
+    width:100%; padding:16px 14px 14px; border-radius:14px;
+    border:1px solid rgba(255,255,255,.10);
+    background: color-mix(in oklab, var(--glass) 92%, transparent);
+    color:var(--text); outline:none; transition:box-shadow .2s ease, border-color .2s ease, background .2s ease;
+    min-height:48px;
+  }
+  .field input::placeholder{color:transparent}
+  .field label{
+    position:absolute; left:12px; top:10px; padding:0 6px; pointer-events:none;
+    color:var(--muted); background:var(--glass); transform-origin:left top;
+    transition: transform .15s ease, color .2s ease, top .15s ease;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{ box-shadow:var(--ring); border-color:color-mix(in oklab, var(--primary) 40%, transparent) }
+  .field input:not(:placeholder-shown)+label,
+  .field input:focus+label,
+  .field textarea:not(:placeholder-shown)+label,
+  .field textarea:focus+label{ transform:translateY(-14px) scale(.9); color:color-mix(in oklab, var(--primary) 70%, var(--muted)); }
+  .field select:focus + label, .field select:valid + label{
+    transform:translateY(-14px) scale(.9);
+    color:color-mix(in oklab, var(--primary) 70%, var(--muted));
+  }
+
+  .row{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
+  .hint{font-size:.95rem; color:var(--muted)}
+  .error{border-color:var(--danger)!important}
+  .error-msg{color:var(--danger); font-size:.95rem}
+  .btn{border:var(--border); background:linear-gradient(180deg, color-mix(in oklab, var(--primary) 18%, var(--glass)) 0%, var(--glass) 80%);
+    color:var(--text); padding:12px 16px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow); min-height:44px}
+  .btn.ghost{background:transparent}
+  .btn:disabled{opacity:.6; cursor:not-allowed}
+  .btn.loading{position:relative; pointer-events:none}
+  .btn.loading::after{content:""; position:absolute; right:12px; top:50%; width:16px; height:16px; transform:translateY(-50%); border-radius:50%;
+    border:2px solid currentColor; border-left-color:transparent; animation:spin 0.7s linear infinite;}
+  @keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
+
+  .dropzone{
+    border:2px dashed color-mix(in oklab, var(--primary) 35%, transparent);
+    border-radius:12px; padding:20px; text-align:center;
+    background: color-mix(in oklab, var(--glass) 90%, transparent)
+  }
+  .dropzone.drag{background: color-mix(in oklab, var(--primary) 10%, transparent)}
+  .preview{display:grid; gap:8px; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); margin-top:10px}
+  .preview img{width:100%; aspect-ratio:1.3/1; object-fit:cover; border-radius:10px; border:var(--border)}
+
+  .counts{display:flex; gap:12px; align-items:center; color:var(--muted); font-weight:600}
+  .dot{width:6px;height:6px;border-radius:50%; background:color-mix(in oklab, var(--primary) 60%, white); box-shadow:0 0 8px var(--primary)}
+
+  .notice{
+    display:flex; gap:10px; align-items:flex-start;
+    background: color-mix(in oklab, var(--danger) 14%, var(--glass));
+    border:1px solid color-mix(in oklab, var(--danger) 28%, transparent);
+    padding:10px 12px; border-radius:12px;
+  }
+  .notice i{width:12px;height:12px;border-radius:50%; background:var(--danger); box-shadow:0 0 10px var(--danger); margin-top:4px}
+
+  .footer{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:14px 18px; border-top:var(--border)}
+  .toast{position:fixed; inset:auto 16px 16px auto; background:var(--glass); border:var(--border); padding:10px 12px; border-radius:10px; opacity:0; transform:translateY(10px); transition:.2s; box-shadow:var(--shadow)}
+  .toast.show{opacity:1; transform:none}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+</style>
+</head>
+<body>
+<div class="overlay" aria-hidden="true"></div>
+
+<div class="container">
+  <div class="card">
+    <div class="header">
+      <h1 class="title" data-i="title" id="pageTitle">Çekiliş Formu</h1>
+      <div class="right">
+        <div class="support"><i></i><span data-i="supported">Web, Velour tarafından hazırlanmıştır</span></div>
+        <div class="lang" role="group" aria-label="Dil">
+          <button type="button" id="trBtn" aria-pressed="true">TR</button>
+          <button type="button" id="enBtn" aria-pressed="false">EN</button>
+        </div>
+      </div>
+    </div>
+
+    <form id="gameForm" novalidate>
+      <input type="text" id="website" name="website" autocomplete="off" class="sr-only" tabindex="-1" aria-hidden="true" />
+      <!-- Varsayılan rid değerini burada tut; ?rid= ile override edilir -->
+      <input type="hidden" id="rid" name="rid" value="mw-august" />
+
+      <div class="grid cols-2">
+        <div class="field">
+          <input id="gameName" name="gameName" placeholder=" " required maxlength="60" />
+          <label for="gameName" data-i="gameNameLabel">Oyuncu Adı *</label>
+          <p class="hint" data-i="gameNameHint">Örn: Velour</p>
+        </div>
+
+        <div class="field">
+          <input id="gameId" name="gameId" placeholder=" " required maxlength="40" />
+          <label for="gameId" data-i="gameIdLabel">Oyuncu Kimliği *</label>
+          <p class="hint" data-i="gameIdHint">Oyundaki benzersiz kimliğin</p>
+        </div>
+
+        <div class="field">
+          <input id="discord" name="discord" placeholder=" " required maxlength="50" />
+          <label for="discord" data-i="discordLabel">Discord Kullanıcı Adı *</label>
+          <p class="hint" data-i="discordHint">Örn: Captain#1234 veya @kullanıcı</p>
+        </div>
+
+        <div class="field">
+          <input id="email" name="email" type="email" placeholder=" " required maxlength="120" />
+          <label for="email" data-i="emailLabel">E-posta *</label>
+          <p class="hint" data-i="emailHint">Kod bu e-postaya gelir</p>
+        </div>
+
+        <div class="field">
+          <select id="subscriber" name="subscriber" required>
+            <option value="" selected disabled hidden></option>
+            <option value="Evet">Evet</option>
+            <option value="Hayır">Hayır</option>
+          </select>
+          <label for="subscriber" data-i="subscriberLabel">YouTube’a abone misin? *</label>
+          <p class="hint" data-i="subscriberHelp" id="ytHelp">
+            YouTube kanalımıza buradan ulaşabilirsin:
+            <a id="ytLink" href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer">@mwharp</a>
+          </p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <div class="row">
+            <strong data-i="uploadTitle">Kanıt / Görsel Yükleme</strong>
+            <span class="hint" data-i="uploadHint">YouTube abonelik ekran görüntüsü vb. (max 6 görsel | tekil ≤ 8 MB | toplam ≤ 9 MB)</span>
+          </div>
+
+          <div id="dropzone" class="dropzone" aria-label="Dosya yükleme alanı">
+            <p><b data-i="dropText1">Dosyayı sürükleyip bırak</b> <span data-i="dropText2">veya tıkla.</span></p>
+            <input id="fileInput" type="file" class="sr-only" multiple accept="image/*,.pdf" />
+            <button class="btn ghost" type="button" id="fileBrowse" data-i="chooseFile">Dosya Seç</button>
+            <div id="preview" class="preview"></div>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <div class="counts">
+              <span class="dot"></span>
+              <span id="fileCount">0 / 6</span>
+              <span>•</span>
+              <span id="fileSize">0 MB / 9 MB</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="notice">
+          <i aria-hidden="true"></i>
+          <div data-i="alert">⚠ YouTube kanalımıza abone olmayanların formları dikkate alınmayacaktır. <a id="ytLink2" href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">Kanalı aç</a></div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div id="formErrors" class="hint" aria-live="polite"></div>
+        <div class="row">
+          <button class="btn ghost" type="reset" id="resetBtn" data-i="reset">Sıfırla</button>
+          <button class="btn" id="sendBtn" type="submit" data-i="send">Gönder</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ====== Ayarlar ====== */
+const ENDPOINT_BASE = "https://spring-dream-b90b.velour662.workers.dev"; // Worker URL
+const ENDPOINT = ENDPOINT_BASE + "/submit";
+const META_URL = ENDPOINT_BASE + "/meta";
+const MAX_FILES = 6;
+const MAX_FILE_SIZE = 8 * 1024 * 1024;
+const MAX_TOTAL_SIZE = 9 * 1024 * 1024;
+const ALLOWED_TYPES = ["image/jpeg","image/png","image/webp","image/gif","image/heic","image/heif","application/pdf"];
+
+/* ====== rid belirle ====== */
+function getRid(){
+  const u = new URL(location.href);
+  const q = (u.searchParams.get("rid")||"").trim();
+  return q || document.getElementById("rid").value.trim() || "default";
+}
+const RID = getRid();
+document.getElementById("rid").value = RID;
+
+/* ====== Dil ====== */
+const tr = {
+  title:"Çekiliş Formu",
+  supported:"Web, Velour tarafından hazırlanmıştır",
+  gameNameLabel:"Oyuncu Adı *", gameNameHint:"Örn: Velour",
+  gameIdLabel:"Oyuncu Kimliği *", gameIdHint:"Oyundaki benzersiz kimliğin",
+  discordLabel:"Discord Kullanıcı Adı *", discordHint:"Örn: Captain#1234 veya @kullanıcı",
+  emailLabel:"E-posta *", emailHint:"Kod bu adrese gönderilir",
+  subscriberLabel:"YouTube’a abone misin? *",
+  // subscriberHelp run-time dolacak (kanal)
+  uploadTitle:"Kanıt / Görsel Yükleme",
+  uploadHint:"YouTube abonelik ekran görüntüsü vb. (max 6 dosya | tekil ≤ 8 MB | toplam ≤ 9 MB)",
+  dropText1:"Dosyayı sürükleyip bırak", dropText2:"veya tıkla.",
+  chooseFile:"Dosya Seç",
+  alert:"⚠ YouTube kanalımıza abone olmayanların formları dikkate alınmayacaktır.",
+  reset:"Sıfırla", send:"Gönder",
+  err_required:"Lütfen zorunlu alanları doldurun.",
+  toast_draft:"Taslak kaydedildi.", toast_reset:"Form sıfırlandı.", toast_sent:"Gönderildi! Teşekkürler.",
+  toast_fail_prefix:"Gönderim başarısız: "
+};
+const en = {
+  title:"Giveaway Form",
+  supported:"Website built by Velour",
+  gameNameLabel:"Player Name *", gameNameHint:"e.g., Velour",
+  gameIdLabel:"Player ID *", gameIdHint:"Your unique in-game identifier",
+  discordLabel:"Discord Username *", discordHint:"e.g., Captain#1234 or @user",
+  emailLabel:"Email *", emailHint:"Code will be sent here",
+  subscriberLabel:"Are you subscribed on YouTube? *",
+  // subscriberHelp run-time dolacak (channel)
+  uploadTitle:"Proof / Image Upload",
+  uploadHint:"YouTube subscription screenshot etc. (max 6 files | single ≤ 8 MB | total ≤ 9 MB)",
+  dropText1:"Drag & drop files", dropText2:"or click.",
+  chooseFile:"Choose File",
+  alert:"⚠ Entries from users not subscribed to our YouTube channel will not be considered.",
+  reset:"Reset", send:"Submit",
+  err_required:"Please fill the required fields.",
+  toast_draft:"Draft saved.", toast_reset:"Form reset.", toast_sent:"Sent! Thank you.",
+  toast_fail_prefix:"Submit failed: "
+};
+let dict = tr;
+
+function setText(sel,key){ const el=document.querySelector(sel); if(el && dict[key]) el.innerHTML=dict[key]; }
+function applyI18n(){
+  setText('[data-i="title"]','title');
+  setText('.support span','supported');
+  setText('[data-i="gameNameLabel"]','gameNameLabel'); setText('[data-i="gameNameHint"]','gameNameHint');
+  setText('[data-i="gameIdLabel"]','gameIdLabel'); setText('[data-i="gameIdHint"]','gameIdHint');
+  setText('[data-i="discordLabel"]','discordLabel'); setText('[data-i="discordHint"]','discordHint');
+  setText('[data-i="emailLabel"]','emailLabel'); setText('[data-i="emailHint"]','emailHint');
+  setText('[data-i="subscriberLabel"]','subscriberLabel');
+  setText('[data-i="uploadTitle"]','uploadTitle'); setText('[data-i="uploadHint"]','uploadHint');
+  setText('[data-i="dropText1"]','dropText1'); setText('[data-i="dropText2"]','dropText2');
+  setText('[data-i="chooseFile"]','chooseFile');
+  setText('[data-i="alert"]','alert');
+  setText('[data-i="reset"]','reset'); setText('[data-i="send"]','send');
+}
+const trBtn=document.getElementById('trBtn'), enBtn=document.getElementById('enBtn');
+trBtn.addEventListener('click', ()=>{ dict=tr; trBtn.setAttribute('aria-pressed','true'); enBtn.setAttribute('aria-pressed','false'); applyI18n(); hydrateMetaText(); });
+enBtn.addEventListener('click', ()=>{ dict=en; enBtn.setAttribute('aria-pressed','true'); trBtn.setAttribute('aria-pressed','false'); applyI18n(); hydrateMetaText(); });
+applyI18n();
+
+/* ====== Yardımcılar ====== */
+const $ = s => document.querySelector(s);
+function toast(msg, ms=2500){ const t=$("#toast"); t.textContent = typeof msg==="string"?msg:JSON.stringify(msg); t.classList.add("show"); clearTimeout(t._timer); t._timer=setTimeout(()=>t.classList.remove("show"), ms); }
+
+/* ====== Dropzone & Sayaç ====== */
+const drop = $("#dropzone"), finput=$("#fileInput"), browse=$("#fileBrowse"), preview=$("#preview");
+const fileCountEl=$("#fileCount"), fileSizeEl=$("#fileSize");
+browse.addEventListener("click", ()=> finput.click());
+["dragenter","dragover"].forEach(evt=> drop.addEventListener(evt, e=>{ e.preventDefault(); drop.classList.add("drag"); }));
+["dragleave","drop"].forEach(evt=> drop.addEventListener(evt, e=>{ e.preventDefault(); drop.classList.remove("drag"); }));
+drop.addEventListener("drop", e=> handleFiles(e.dataTransfer.files));
+finput.addEventListener("change", ()=> handleFiles(finput.files));
+
+let filesState = [];
+function bytesToMB(n){ return Math.round(n/1024/1024); }
+function refreshCounters(){
+  const total = filesState.reduce((a,f)=>a+f.size,0);
+  fileCountEl.textContent = `${filesState.length} / ${MAX_FILES}`;
+  fileSizeEl.textContent  = `${bytesToMB(total)} MB / 9 MB`;
+}
+function handleFiles(list){
+  const arr = [...list];
+  let picked = arr.slice(0, MAX_FILES);
+  let total = 0; const valid = [];
+  for(const f of picked){
+    if(!ALLOWED_TYPES.includes(f.type)){ toast(`${f.name}: ${f.type || "unknown"} türü desteklenmiyor`); continue; }
+    if(f.size > MAX_FILE_SIZE){ toast(`${f.name}: dosya çok büyük (>${(MAX_FILE_SIZE/1024/1024)|0} MB)`); continue; }
+    if(total + f.size > MAX_TOTAL_SIZE){ toast(`Toplam boyut sınırı aşıldı (>${(MAX_TOTAL_SIZE/1024/1024)|0} MB)`); break; }
+    total += f.size; valid.push(f);
+  }
+  filesState = valid;
+  preview.innerHTML="";
+  filesState.forEach(file=>{
+    const card = document.createElement("div");
+    if(file.type.startsWith("image/")){
+      const img = document.createElement("img"); img.alt = file.name; card.appendChild(img);
+      const reader = new FileReader(); reader.onload = ev => img.src = ev.target.result; reader.readAsDataURL(file);
+    } else {
+      card.innerHTML = `<div class="hint" style="border:var(--border);border-radius:10px;padding:8px">${file.name}</div>`;
+    }
+    preview.appendChild(card);
+  });
+  if(arr.length > MAX_FILES) toast(`En fazla ${MAX_FILES} dosya yükleyebilirsin.`);
+  refreshCounters();
+}
+refreshCounters();
+
+/* ====== META → başlık + YouTube kanal metni ====== */
+let META = { title:"Çekiliş", youtubeHandle:"@mwharp", youtubeLink:"https://www.youtube.com/@mwharp", startAt:null, endAt:null, closed:false };
+
+async function fetchMeta(){
+  try{
+    const r = await fetch(`${META_URL}?rid=${encodeURIComponent(RID)}`, { mode:"cors" });
+    const j = await r.json();
+    if(j && j.ok && j.meta){
+      META = j.meta;
+    }
+  } catch(e) {
+    console.warn("meta error", e);
+  }
+}
+
+function hydrateMetaText(){
+  // Başlık
+  if (META.title) {
+    document.getElementById("pageTitle").textContent = META.title;
+  }
+  // YouTube alanları (iki yerde link var)
+  const h = META.youtubeHandle || "@mwharp";
+  const l = META.youtubeLink   || "https://www.youtube.com/@mwharp";
+
+  const ytLink = document.getElementById("ytLink");
+  const ytLink2 = document.getElementById("ytLink2");
+  if (ytLink){ ytLink.textContent = h; ytLink.href = l; }
+  if (ytLink2){ ytLink2.href = l; }
+
+  // Dil metinlerinde yardımcı açıklama:
+  const trHelp = `YouTube kanalımıza buradan ulaşabilirsin: <a id="ytLink" href="${l}" target="_blank" rel="noopener noreferrer">${h}</a>`;
+  const enHelp = `You can reach our YouTube channel here: <a id="ytLink" href="${l}" target="_blank" rel="noopener noreferrer">${h}</a>`;
+  tr.subscriberHelp = trHelp;
+  en.subscriberHelp = enHelp;
+
+  // aktif dile göre subscriberHelp'i bas
+  const helpEl = document.querySelector('[data-i="subscriberHelp"]');
+  if (helpEl) helpEl.innerHTML = (dict === tr ? trHelp : enHelp);
+}
+(async ()=>{ await fetchMeta(); applyI18n(); hydrateMetaText(); })();
+
+/* ====== Doğrulama & Gönderim ====== */
+function validate(){
+  if (document.getElementById("website").value) { return false; } // honeypot
+  let ok=true; $("#formErrors").textContent="";
+  ["#gameName","#gameId","#discord","#email","#subscriber"].forEach(sel=>{
+    const el=$(sel); el.classList.remove("error");
+    if(!el.value || (el.tagName==="SELECT" && el.value==="")){
+      el.classList.add("error"); ok=false;
+    }
+  });
+  if(!ok){ $("#formErrors").innerHTML=`<span class="error-msg">${dict.err_required}</span>`; }
+  return ok;
+}
+async function sendToWorker(signal){
+  const fd = new FormData();
+  fd.append("rid", $("#rid").value.trim());
+  fd.append("gameName", $("#gameName").value.trim());
+  fd.append("gameId", $("#gameId").value.trim());
+  fd.append("discord", $("#discord").value.trim());
+  fd.append("email", $("#email").value.trim());
+  fd.append("subscriber", $("#subscriber").value);
+  filesState.forEach((file)=> fd.append("attachments", file, file.name));
+
+  const res = await fetch(ENDPOINT + "?rid=" + encodeURIComponent($("#rid").value.trim()), {
+    method:"POST", body: fd, signal, mode:"cors"
+  });
+  const text = await res.text(); let json={};
+  try{ json=JSON.parse(text); }catch{ json={ ok:false, error:text||"Beklenmeyen cevap" }; }
+  if(!res.ok || !json.ok){ throw new Error(json.error || `Hata: HTTP ${res.status}`); }
+  return true;
+}
+const form = $("#gameForm"); const sendBtn = $("#sendBtn");
+form.addEventListener("submit", async (e)=>{
+  e.preventDefault(); if(!validate()) return;
+  const controller = new AbortController(); const t = setTimeout(()=> controller.abort(), 30000);
+  sendBtn.disabled = true; sendBtn.classList.add("loading");
+  try{
+    await sendToWorker(controller.signal);
+    toast(dict.toast_sent);
+    form.reset(); filesState=[]; $("#preview").innerHTML=""; refreshCounters();
+  }catch(err){
+    console.error(err); toast(dict.toast_fail_prefix + (err.message || "Bilinmeyen hata"), 4000);
+  }finally{
+    clearTimeout(t); sendBtn.disabled=false; sendBtn.classList.remove("loading");
+  }
+});
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  filesState=[]; $("#preview").innerHTML=""; refreshCounters(); toast(dict.toast_reset);
+});
+</script>
+</body>
+</html>
