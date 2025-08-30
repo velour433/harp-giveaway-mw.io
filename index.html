@@ -41,7 +41,6 @@
   form{display:grid; gap:16px; padding:18px}
   .grid{display:grid; gap:12px}
   @media (min-width: 720px){ .grid.cols-2{grid-template-columns:1fr 1fr} }
-
   .field{position:relative}
   .field input,.field select,.field textarea{
     width:100%; padding:16px 14px 14px; border-radius:14px;
@@ -65,7 +64,6 @@
     transform:translateY(-14px) scale(.9);
     color:color-mix(in oklab, var(--primary) 70%, var(--muted));
   }
-
   .row{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
   .hint{font-size:.95rem; color:var(--muted)}
   .error{border-color:var(--danger)!important}
@@ -77,43 +75,49 @@
   .btn.loading{position:relative; pointer-events:none}
   .btn.loading::after{content:""; position:absolute; right:12px; top:50%; width:16px; height:16px; transform:translateY(-50%); border-radius:50%;
     border:2px solid currentColor; border-left-color:transparent; animation:spin 0.7s linear infinite;}
-  @keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
-
-  .dropzone{
-    border:2px dashed color-mix(in oklab, var(--primary) 35%, transparent);
-    border-radius:12px; padding:20px; text-align:center;
-    background: color-mix(in oklab, var(--glass) 90%, transparent)
-  }
+  .dropzone{border:2px dashed color-mix(in oklab, var(--primary) 35%, transparent); border-radius:12px; padding:20px; text-align:center;
+    background: color-mix(in oklab, var(--glass) 90%, transparent)}
   .dropzone.drag{background: color-mix(in oklab, var(--primary) 10%, transparent)}
   .preview{display:grid; gap:8px; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); margin-top:10px}
   .preview img{width:100%; aspect-ratio:1.3/1; object-fit:cover; border-radius:10px; border:var(--border)}
-
   .counts{display:flex; gap:12px; align-items:center; color:var(--muted); font-weight:600}
   .dot{width:6px;height:6px;border-radius:50%; background:color-mix(in oklab, var(--primary) 60%, white); box-shadow:0 0 8px var(--primary)}
-
-  .notice{
-    display:flex; gap:10px; align-items:flex-start;
+  .notice{display:flex; gap:10px; align-items:flex-start;
     background: color-mix(in oklab, var(--danger) 14%, var(--glass));
     border:1px solid color-mix(in oklab, var(--danger) 28%, transparent);
-    padding:10px 12px; border-radius:12px;
-  }
+    padding:10px 12px; border-radius:12px;}
   .notice i{width:12px;height:12px;border-radius:50%; background:var(--danger); box-shadow:0 0 10px var(--danger); margin-top:4px}
-
   .footer{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:14px 18px; border-top:var(--border)}
   .toast{position:fixed; inset:auto 16px 16px auto; background:var(--glass); border:var(--border); padding:10px 12px; border-radius:10px; opacity:0; transform:translateY(10px); transition:.2s; box-shadow:var(--shadow)}
   .toast.show{opacity:1; transform:none}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+  .hidden{display:none !important;}
+  .grid-list{display:grid; gap:12px; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); padding:18px}
+  .mini{display:flex; flex-direction:column; gap:8px; background:color-mix(in oklab, var(--glass) 96%, transparent); border:var(--border); border-radius:12px; padding:12px}
+  .mini .muted{font-size:.9rem}
 </style>
 </head>
 <body>
 <div class="overlay" aria-hidden="true"></div>
 
 <div class="container">
-  <div class="card">
+
+  <!-- PİCKER (rid seç) -->
+  <div id="cardPick" class="card hidden">
+    <div class="header"><h1 class="title">Çekiliş Seç</h1></div>
+    <div style="padding:18px">
+      <p id="pickMsg" class="hint">Bir çekiliş seç veya yöneticiye sor.</p>
+      <div id="listWrap" class="grid-list" style="padding:0; margin-top:12px"></div>
+      <div style="margin-top:12px"><button class="btn ghost" id="refreshList">Listeyi Yenile</button></div>
+    </div>
+  </div>
+
+  <!-- FORM KARTI -->
+  <div id="cardForm" class="card hidden">
     <div class="header">
-      <h1 class="title" data-i="title">Çekiliş Formu</h1>
+      <h1 class="title" id="pageTitle">Çekiliş Formu</h1>
       <div class="right">
-        <div class="support"><i></i><span data-i="supported">Web, Velour tarafından hazırlanmıştır</span></div>
+        <div class="support"><i></i><span id="dateInfo" class="hint">—</span></div>
         <div class="lang" role="group" aria-label="Dil">
           <button type="button" id="trBtn" aria-pressed="true">TR</button>
           <button type="button" id="enBtn" aria-pressed="false">EN</button>
@@ -123,7 +127,7 @@
 
     <form id="gameForm" novalidate>
       <input type="text" id="website" name="website" autocomplete="off" class="sr-only" tabindex="-1" aria-hidden="true" />
-      <input type="hidden" id="rid" name="rid" value="mw-august" />
+      <input type="hidden" id="rid" name="rid" value="" />
 
       <div class="grid cols-2">
         <div class="field">
@@ -159,7 +163,7 @@
           <label for="subscriber" data-i="subscriberLabel">YouTube’a abone misin? *</label>
           <p class="hint" data-i="subscriberHelp">
             YouTube kanalımıza buradan ulaşabilirsin:
-            <a href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer">@mwharp</a>
+            <a id="ytChannel" href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer">@mwharp</a>
           </p>
         </div>
       </div>
@@ -168,7 +172,7 @@
         <div>
           <div class="row">
             <strong data-i="uploadTitle">Kanıt / Görsel Yükleme</strong>
-            <span class="hint" data-i="uploadHint">YouTube abonelik ekran görüntüsü vb. (max 6 görsel | tekil ≤ 8 MB | toplam ≤ 9 MB)</span>
+            <span class="hint" data-i="uploadHint">YouTube abonelik ekran görüntüsü vb. (max 6 dosya | tekil ≤ 8 MB | toplam ≤ 9 MB)</span>
           </div>
 
           <div id="dropzone" class="dropzone" aria-label="Dosya yükleme alanı">
@@ -190,7 +194,7 @@
 
         <div class="notice">
           <i aria-hidden="true"></i>
-          <div data-i="alert">⚠ YouTube kanalımıza abone olmayanların formları dikkate alınmayacaktır. <a href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">Kanalı aç</a></div>
+          <div data-i="alert">⚠ YouTube kanalımıza abone olmayanların formları dikkate alınmayacaktır. <a id="ytChannel2" href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">Kanalı aç</a></div>
         </div>
       </div>
 
@@ -208,24 +212,79 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script>
-/* ====== Ayarlar ====== */
-const ENDPOINT_BASE = "https://spring-dream-b90b.velour662.workers.dev"; // Worker URL
-const ENDPOINT = ENDPOINT_BASE + "/submit";
-const MAX_FILES = 6;
-const MAX_FILE_SIZE = 8 * 1024 * 1024;
-const MAX_TOTAL_SIZE = 9 * 1024 * 1024;
-const ALLOWED_TYPES = ["image/jpeg","image/png","image/webp","image/gif","image/heic","image/heif","application/pdf"];
+/* ====== Sabitler ====== */
+const WORKER_BASE = "https://spring-dream-b90b.velour662.workers.dev";
+const ENDPOINT = WORKER_BASE + "/submit";
+
+/* ====== URL rid ====== */
+const params = new URLSearchParams(location.search);
+let currentRid = (params.get("rid")||"").trim().toLowerCase();
+
+/* ====== Yardımcılar ====== */
+const $ = s => document.querySelector(s);
+function toast(msg, ms=2500){ const t=$("#toast"); t.textContent = typeof msg==="string"?msg:JSON.stringify(msg); t.classList.add("show"); clearTimeout(t._timer); t._timer=setTimeout(()=>t.classList.remove("show"), ms); }
+function fmt(n){ if(!n) return "—"; const d=new Date(n); return d.toLocaleString("tr-TR"); }
+function pageUrlWithRid(rid){ const base = location.origin + location.pathname; return base + "?rid=" + encodeURIComponent(rid); }
+function show(id){ ["cardPick","cardForm"].forEach(x=> $("#"+x).classList.add("hidden")); $("#"+id).classList.remove("hidden"); }
+
+/* ====== Listeyi getir (picker için) ====== */
+async function loadList(message){
+  $("#pickMsg").textContent = message || "Bir çekiliş seç veya yöneticiye sor.";
+  const wrap = $("#listWrap");
+  wrap.innerHTML = `<div class="mini"><b>Yükleniyor…</b><span class="muted">Lütfen bekle.</span></div>`;
+  try{
+    const r = await fetch(`${WORKER_BASE}/raffles`, {mode:"cors"});
+    const j = await r.json();
+    const items = (j.items||[]);
+    if(items.length===0){
+      wrap.innerHTML = `<div class="mini"><b>Çekiliş yok</b><span class="muted">Henüz yayınlanmış bir çekiliş bulunamadı.</span></div>`;
+      return;
+    }
+    wrap.innerHTML = items.map(x=>`
+      <div class="mini">
+        <b>${x.title||"Çekiliş"}</b>
+        <div class="muted">RID: <code>${x.rid}</code></div>
+        <div class="muted">Başlangıç: ${fmt(x.startAt)} • Bitiş: ${fmt(x.endAt)} • ${x.closed ? "Kapalı":"Açık"}</div>
+        <div class="row">
+          <a class="btn" href="${pageUrlWithRid(x.rid)}">Aç</a>
+        </div>
+      </div>
+    `).join("");
+  }catch(e){
+    wrap.innerHTML = `<div class="mini"><b>Liste alınamadı</b><div class="muted">${String(e)}</div></div>`;
+  }
+}
+$("#refreshList").addEventListener("click", ()=> loadList("Liste yenileniyor…"));
+
+/* ====== Meta yükle veya picker göster ====== */
+async function loadMetaOrPick(){
+  if(!currentRid){ show("cardPick"); await loadList("Çekiliş seç:"); return; }
+  try{
+    const r = await fetch(`${WORKER_BASE}/meta?rid=${encodeURIComponent(currentRid)}`, { mode:"cors" });
+    if(r.status===404){ show("cardPick"); await loadList("Bu RID bulunamadı. Bir çekiliş seç:"); return; }
+    if(!r.ok){ show("cardPick"); await loadList("Sunucu hatası. Bir çekiliş seç:"); return; }
+    const j = await r.json(); const m = j.meta || {};
+    // Başlık, tarih, yt link
+    $("#pageTitle").textContent = m.title || "Çekiliş";
+    document.title = m.title || "Çekiliş Formu";
+    $("#dateInfo").textContent = `${fmt(m.startAt)} → ${fmt(m.endAt)}${m.closed ? " • Kapalı":""}`;
+    const link = m.youtubeLink || "https://www.youtube.com/"; const handle = m.youtubeHandle || "@mwharp";
+    const yt1 = $("#ytChannel"); const yt2 = $("#ytChannel2"); yt1.href = link; yt1.textContent = handle; yt2.href = link;
+    // rid gizli alan
+    $("#rid").value = currentRid;
+    show("cardForm");
+  }catch(e){
+    show("cardPick"); await loadList("Bağlantı hatası. Bir çekiliş seç:");
+  }
+}
 
 /* ====== Dil ====== */
 const tr = {
-  title:"Çekiliş Formu",
-  supported:"Web, Velour tarafından hazırlanmıştır",
   gameNameLabel:"Oyuncu Adı *", gameNameHint:"Örn: Velour",
   gameIdLabel:"Oyuncu Kimliği *", gameIdHint:"Oyundaki benzersiz kimliğin",
   discordLabel:"Discord Kullanıcı Adı *", discordHint:"Örn: Captain#1234 veya @kullanıcı",
   emailLabel:"E-posta *", emailHint:"Kod bu adrese gönderilir",
   subscriberLabel:"YouTube’a abone misin? *",
-  subscriberHelp:'YouTube kanalımıza buradan ulaşabilirsin: <a href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer">@mwharp</a>',
   uploadTitle:"Kanıt / Görsel Yükleme",
   uploadHint:"YouTube abonelik ekran görüntüsü vb. (max 6 dosya | tekil ≤ 8 MB | toplam ≤ 9 MB)",
   dropText1:"Dosyayı sürükleyip bırak", dropText2:"veya tıkla.",
@@ -233,18 +292,15 @@ const tr = {
   alert:"⚠ YouTube kanalımıza abone olmayanların formları dikkate alınmayacaktır.",
   reset:"Sıfırla", send:"Gönder",
   err_required:"Lütfen zorunlu alanları doldurun.",
-  toast_draft:"Taslak kaydedildi.", toast_reset:"Form sıfırlandı.", toast_sent:"Gönderildi! Teşekkürler.",
+  toast_reset:"Form sıfırlandı.", toast_sent:"Gönderildi! Teşekkürler.",
   toast_fail_prefix:"Gönderim başarısız: "
 };
 const en = {
-  title:"Giveaway Form",
-  supported:"Website built by Velour",
   gameNameLabel:"Player Name *", gameNameHint:"e.g., Velour",
   gameIdLabel:"Player ID *", gameIdHint:"Your unique in-game identifier",
   discordLabel:"Discord Username *", discordHint:"e.g., Captain#1234 or @user",
   emailLabel:"Email *", emailHint:"Code will be sent here",
   subscriberLabel:"Are you subscribed on YouTube? *",
-  subscriberHelp:'You can reach our YouTube channel here: <a href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer">@mwharp</a>',
   uploadTitle:"Proof / Image Upload",
   uploadHint:"YouTube subscription screenshot etc. (max 6 files | single ≤ 8 MB | total ≤ 9 MB)",
   dropText1:"Drag & drop files", dropText2:"or click.",
@@ -252,36 +308,33 @@ const en = {
   alert:"⚠ Entries from users not subscribed to our YouTube channel will not be considered.",
   reset:"Reset", send:"Submit",
   err_required:"Please fill the required fields.",
-  toast_draft:"Draft saved.", toast_reset:"Form reset.", toast_sent:"Sent! Thank you.",
+  toast_reset:"Form reset.", toast_sent:"Sent! Thank you.",
   toast_fail_prefix:"Submit failed: "
 };
 let dict = tr;
-function setText(sel,key){ const el=document.querySelector(sel); if(el) el.innerHTML=dict[key]; }
+function tSet(sel, key){ const el=document.querySelector(sel); if(el) el.innerHTML=dict[key]; }
 function applyI18n(){
-  setText('[data-i="title"]','title');
-  setText('.support span','supported');
-  setText('[data-i="gameNameLabel"]','gameNameLabel'); setText('[data-i="gameNameHint"]','gameNameHint');
-  setText('[data-i="gameIdLabel"]','gameIdLabel'); setText('[data-i="gameIdHint"]','gameIdHint');
-  setText('[data-i="discordLabel"]','discordLabel'); setText('[data-i="discordHint"]','discordHint');
-  setText('[data-i="emailLabel"]','emailLabel'); setText('[data-i="emailHint"]','emailHint');
-  setText('[data-i="subscriberLabel"]','subscriberLabel');
-  setText('[data-i="subscriberHelp"]','subscriberHelp');
-  setText('[data-i="uploadTitle"]','uploadTitle'); setText('[data-i="uploadHint"]','uploadHint');
-  setText('[data-i="dropText1"]','dropText1'); setText('[data-i="dropText2"]','dropText2');
-  setText('[data-i="chooseFile"]','chooseFile');
-  setText('[data-i="alert"]','alert');
-  setText('[data-i="reset"]','reset'); setText('[data-i="send"]','send');
+  tSet('[for="gameName"]','gameNameLabel'); tSet('[data-i="gameNameHint"]','gameNameHint');
+  tSet('[for="gameId"]','gameIdLabel');     tSet('[data-i="gameIdHint"]','gameIdHint');
+  tSet('[for="discord"]','discordLabel');   tSet('[data-i="discordHint"]','discordHint');
+  tSet('[for="email"]','emailLabel');       tSet('[data-i="emailHint"]','emailHint');
+  tSet('[for="subscriber"]','subscriberLabel');
+  tSet('[data-i="uploadTitle"]','uploadTitle'); tSet('[data-i="uploadHint"]','uploadHint');
+  tSet('[data-i="dropText1"]','dropText1'); tSet('[data-i="dropText2"]','dropText2');
+  tSet('[data-i="chooseFile"]','chooseFile');
+  tSet('[data-i="alert"]','alert');
+  tSet('[data-i="reset"]','reset'); tSet('[data-i="send"]','send');
 }
-const trBtn=document.getElementById('trBtn'), enBtn=document.getElementById('enBtn');
-trBtn.addEventListener('click', ()=>{ dict=tr; trBtn.setAttribute('aria-pressed','true'); enBtn.setAttribute('aria-pressed','false'); applyI18n(); });
-enBtn.addEventListener('click', ()=>{ dict=en; enBtn.setAttribute('aria-pressed','true'); trBtn.setAttribute('aria-pressed','false'); applyI18n(); });
+document.getElementById('trBtn').addEventListener('click', ()=>{ dict=tr; document.getElementById('trBtn').setAttribute('aria-pressed','true'); document.getElementById('enBtn').setAttribute('aria-pressed','false'); applyI18n(); });
+document.getElementById('enBtn').addEventListener('click', ()=>{ dict=en; document.getElementById('enBtn').setAttribute('aria-pressed','true'); document.getElementById('trBtn').setAttribute('aria-pressed','false'); applyI18n(); });
 applyI18n();
 
-/* ====== Yardımcılar ====== */
-const $ = s => document.querySelector(s);
-function toast(msg, ms=2500){ const t=$("#toast"); t.textContent = typeof msg==="string"?msg:JSON.stringify(msg); t.classList.add("show"); clearTimeout(t._timer); t._timer=setTimeout(()=>t.classList.remove("show"), ms); }
-
 /* ====== Dropzone & Sayaç ====== */
+const MAX_FILES = 6;
+const MAX_FILE_SIZE = 8 * 1024 * 1024;
+const MAX_TOTAL_SIZE = 9 * 1024 * 1024;
+const ALLOWED_TYPES = ["image/jpeg","image/png","image/webp","image/gif","image/heic","image/heif","application/pdf"];
+
 const drop = $("#dropzone"), finput=$("#fileInput"), browse=$("#fileBrowse"), preview=$("#preview");
 const fileCountEl=$("#fileCount"), fileSizeEl=$("#fileSize");
 browse.addEventListener("click", ()=> finput.click());
@@ -334,12 +387,13 @@ function validate(){
       el.classList.add("error"); ok=false;
     }
   });
-  if(!ok){ $("#formErrors").innerHTML=`<span class="error-msg">${dict.err_required}</span>`; }
+  if(!ok){ $("#formErrors").innerHTML=`<span class="error-msg">Lütfen zorunlu alanları doldurun.</span>`; }
   return ok;
 }
 async function sendToWorker(signal){
+  const rid = $("#rid").value.trim();
   const fd = new FormData();
-  fd.append("rid", $("#rid").value.trim());
+  fd.append("rid", rid);
   fd.append("gameName", $("#gameName").value.trim());
   fd.append("gameId", $("#gameId").value.trim());
   fd.append("discord", $("#discord").value.trim());
@@ -347,7 +401,8 @@ async function sendToWorker(signal){
   fd.append("subscriber", $("#subscriber").value);
   filesState.forEach((file)=> fd.append("attachments", file, file.name));
 
-  const res = await fetch(ENDPOINT + "?rid=" + encodeURIComponent($("#rid").value.trim()), {
+  // replace=1: aynı e-posta tekrar başvursa güncellesin
+  const res = await fetch(`${ENDPOINT}?rid=${encodeURIComponent(rid)}&replace=1`, {
     method:"POST", body: fd, signal, mode:"cors"
   });
   const text = await res.text(); let json={};
@@ -362,17 +417,20 @@ form.addEventListener("submit", async (e)=>{
   sendBtn.disabled = true; sendBtn.classList.add("loading");
   try{
     await sendToWorker(controller.signal);
-    toast(dict.toast_sent);
+    toast("Gönderildi! Teşekkürler.");
     form.reset(); filesState=[]; $("#preview").innerHTML=""; refreshCounters();
   }catch(err){
-    console.error(err); toast(dict.toast_fail_prefix + (err.message || "Bilinmeyen hata"), 4000);
+    console.error(err); toast("Gönderim başarısız: " + (err.message || "Bilinmeyen hata"), 4000);
   }finally{
     clearTimeout(t); sendBtn.disabled=false; sendBtn.classList.remove("loading");
   }
 });
 document.getElementById("resetBtn").addEventListener("click", ()=>{
-  filesState=[]; $("#preview").innerHTML=""; refreshCounters(); toast(dict.toast_reset);
+  filesState=[]; $("#preview").innerHTML=""; refreshCounters(); toast("Form sıfırlandı.");
 });
+
+/* init */
+loadMetaOrPick();
 </script>
 </body>
 </html>
