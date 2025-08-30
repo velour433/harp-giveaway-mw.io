@@ -1,41 +1,48 @@
 <!doctype html>
 <html lang="tr">
 <head>
-<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Admin • Çekilişler</title>
 <meta name="color-scheme" content="dark light">
 <style>
-:root{ --bg:#0b1020; --glass:#0f1733cc; --text:#ecf1ff; --muted:#a9b4d6; --primary:#5ea1ff; --accent:#34d399; --danger:#ff6b6b; --border:1px solid rgba(255,255,255,.12); --radius:16px; --shadow:0 16px 40px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.25);}
-@media (prefers-color-scheme: light){ :root{ --text:#0b1020; --muted:#4b5563; --glass:#ffffffd9; --bg:#eef3ff; --border:1px solid rgba(0,0,0,.08); --shadow:0 18px 36px rgba(2,6,23,.08), 0 2px 10px rgba(2,6,23,.06);} }
-*{box-sizing:border-box} html,body{height:100%}
-body{margin:0; color:var(--text); font:16px/1.5 ui-sans-serif,system-ui; background:#000 url('https://images.wallpapersden.com/image/download/world-of-warships-gaming-2023_bW5namiUmZqaraWkpJRmbmdlrWZlbWU.jpg') center/cover fixed no-repeat;}
-.overlay{position:fixed; inset:0; background: radial-gradient(1000px 600px at 20% 10%, rgba(0,0,0,.45), transparent 60%), linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55)); pointer-events:none;}
-.wrap{max-width:1100px; margin:min(6vh,64px) auto; padding:20px}
-.section{background:var(--glass); border:var(--border); border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(10px) saturate(120%); overflow:hidden; margin-bottom:16px}
-.head{display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:var(--border)}
-h2{margin:0; font-size:clamp(18px,2.2vw,22px)}
-.content{padding:16px; display:grid; gap:12px}
-.row{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
-.field{display:flex; flex-direction:column; gap:6px; min-width:220px}
-input[type="text"], input[type="datetime-local"], textarea{ padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:color-mix(in oklab, var(--glass) 92%, transparent); color:var(--text);}
-textarea{min-height:84px}
-.btn{border:var(--border); background:linear-gradient(180deg, color-mix(in oklab, var(--primary) 18%, var(--glass)) 0%, var(--glass) 80%); color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow); min-height:40px}
-.btn.ghost{background:transparent}
-.tag{border:var(--border); border-radius:999px; padding:6px 10px; background:color-mix(in oklab, var(--glass) 96%, transparent); color:var(--muted)}
-table{width:100%; border-collapse:separate; border-spacing:0 8px}
-th,td{padding:10px 12px; text-align:left}
-tbody tr{background:color-mix(in oklab, var(--glass) 96%, transparent); border:var(--border)}
-tbody tr td{border-top:var(--border); border-bottom:var(--border)}
-tbody tr td:first-child{border-left:var(--border); border-top-left-radius:10px; border-bottom-left-radius:10px}
-tbody tr td:last-child{border-right:var(--border); border-top-right-radius:10px; border-bottom-right-radius:10px}
-.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block; margin-right:6px}
-.ok{background:#34d399}.warn{background:#f59e0b}.off{background:#ff6b6b}
-.toast{position:fixed; right:16px; bottom:16px; background:var(--glass); border:var(--border); padding:10px 12px; border-radius:10px; box-shadow:var(--shadow); opacity:0; transform:translateY(10px); transition:.2s}
-.toast.show{opacity:1; transform:none}
-.lock{position:fixed; inset:0; display:grid; place-items:center; z-index:10}
-.panel{max-width:520px; width:92%; background:var(--glass); border:var(--border); border-radius:16px; padding:16px; box-shadow:var(--shadow); backdrop-filter:blur(10px) saturate(120%)}
-[hidden]{display:none !important;}
-.app-blur{filter:blur(6px);}
+  :root{ --bg:#0b1020; --glass:#0f1733cc; --text:#ecf1ff; --muted:#a9b4d6; --primary:#5ea1ff; --accent:#34d399; --danger:#ff6b6b; --border:1px solid rgba(255,255,255,.12); --radius:16px; --shadow:0 16px 40px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.25); }
+  @media (prefers-color-scheme: light){ :root{ --text:#0b1020; --muted:#4b5563; --glass:#ffffffd9; --bg:#eef3ff; --border:1px solid rgba(0,0,0,.08); --shadow:0 18px 36px rgba(2,6,23,.08), 0 2px 10px rgba(2,6,23,.06);} }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0; color:var(--text); font:16px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial; background:#000 url('https://images.wallpapersden.com/image/download/world-of-warships-gaming-2023_bW5namiUmZqaraWkpJRmbmdlrWZlbWU.jpg') center/cover fixed no-repeat;}
+  .overlay{position:fixed; inset:0; background:
+    radial-gradient(1000px 600px at 20% 10%, rgba(0,0,0,.45), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55)); pointer-events:none;}
+  .wrap{max-width:1200px; margin:min(6vh,64px) auto; padding:20px}
+  .section{background:var(--glass); border:var(--border); border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(10px) saturate(120%); overflow:hidden; margin-bottom:16px}
+  .head{display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:var(--border)}
+  h2{margin:0; font-size:clamp(18px,2.2vw,22px)}
+  .content{padding:16px; display:grid; gap:12px}
+  .row{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+  .field{display:flex; flex-direction:column; gap:6px; min-width:220px}
+  input[type="text"], input[type="datetime-local"], textarea{
+    padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
+    background:color-mix(in oklab, var(--glass) 92%, transparent); color:var(--text);
+  }
+  textarea{min-height:90px}
+  .btn{border:var(--border); background:linear-gradient(180deg, color-mix(in oklab, var(--primary) 18%, var(--glass)) 0%, var(--glass) 80%); color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow); min-height:40px}
+  .btn.ghost{background:transparent}
+  .tag{border:var(--border); border-radius:999px; padding:6px 10px; background:color-mix(in oklab, var(--glass) 96%, transparent); color:var(--muted)}
+  .muted{color:var(--muted)}
+  table{width:100%; border-collapse:separate; border-spacing:0 8px}
+  th,td{padding:10px 12px; text-align:left}
+  tbody tr{background:color-mix(in oklab, var(--glass) 96%, transparent); border:var(--border)}
+  tbody tr td{border-top:var(--border); border-bottom:var(--border)}
+  tbody tr td:first-child{border-left:var(--border); border-top-left-radius:10px; border-bottom-left-radius:10px}
+  tbody tr td:last-child{border-right:var(--border); border-top-right-radius:10px; border-bottom-right-radius:10px}
+  .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block; margin-right:6px}
+  .ok{background:#34d399}.warn{background:#f59e0b}.off{background:#ff6b6b}
+  .toast{position:fixed; right:16px; bottom:16px; background:var(--glass); border:var(--border); padding:10px 12px; border-radius:10px; box-shadow:var(--shadow); opacity:0; transform:translateY(10px); transition:.2s}
+  .toast.show{opacity:1; transform:none}
+  .lock{position:fixed; inset:0; display:grid; place-items:center; z-index:10}
+  .panel{max-width:520px; width:92%; background:var(--glass); border:var(--border); border-radius:16px; padding:16px; box-shadow:var(--shadow); backdrop-filter:blur(10px) saturate(120%)}
+  [hidden]{display:none !important;}
+  .app-blur{filter:blur(6px);}
 </style>
 </head>
 <body>
@@ -48,242 +55,217 @@ tbody tr td:last-child{border-right:var(--border); border-top-right-radius:10px;
     <div class="field"><label>Worker URL</label><input id="base" type="text" placeholder="https://...workers.dev" value="https://spring-dream-b90b.velour662.workers.dev"></div>
     <div class="field"><label>Bearer Token</label><input id="token" type="text" placeholder="ADMIN_TOKEN"></div>
     <div class="row"><button class="btn" id="enter">Giriş Yap</button></div>
-    <p class="tag">Bilgiler tarayıcında saklanır (localStorage).</p>
+    <p class="muted">Bilgiler tarayıcında saklanır (localStorage).</p>
   </div>
 </div>
 
 <!-- APP -->
 <div class="wrap app-blur" id="app" hidden>
+
   <section class="section">
-    <div class="head"><h2>Genel</h2><span class="tag" id="state"><span class="status-dot off"></span>Bağlı değil</span></div>
+    <div class="head">
+      <h2>Aktif Bağlantı</h2>
+      <span class="tag" id="state"><span class="status-dot off"></span>Bağlı değil</span>
+    </div>
     <div class="content">
+      <div class="muted">Base: <span id="baseShow">—</span></div>
       <div class="row">
-        <button class="btn" id="newRaffle">Yeni Çekiliş Oluştur</button>
-        <div class="field" style="flex:1"><label>Seçili RID</label><input id="rid" type="text" placeholder="r-..." readonly></div>
-        <button class="btn" id="copyLink">Form Linkini Kopyala</button>
+        <div class="field"><label>RID</label><input id="rid" type="text" placeholder="r-YYYYMMDD-xxxx"></div>
+        <button class="btn" id="ridGen">RID Üret</button>
+        <button class="btn" id="useRid">Bu çekilişi yönet</button>
+        <a class="btn ghost" id="openForm" target="_blank" rel="noopener">Formu Aç</a>
       </div>
-      <div class="row">
-        <div class="field" style="min-width:320px;flex:1"><label>Başlık</label><input id="title" type="text" placeholder="Örn: Ağustos Çekilişi"></div>
-        <div class="field"><label>Başlangıç</label><input id="start" type="datetime-local"></div>
-        <div class="field"><label>Bitiş</label><input id="end" type="datetime-local"></div>
-        <div class="field" style="min-width:320px"><label>Gönderen (mail from)</label><input id="from" type="text" placeholder="Velour &lt;onboarding@resend.dev&gt;"></div>
-      </div>
-      <div class="row">
-        <div class="field" style="min-width:280px"><label>YouTube Handle</label><input id="ytHandle" type="text" placeholder="@mwharp"></div>
-        <div class="field" style="min-width:380px;flex:1"><label>YouTube Link</label><input id="ytLink" type="text" placeholder="https://www.youtube.com/@mwharp"></div>
-      </div>
-      <div class="field"><label>Ödüller (satır satır, sıra = derece)</label><textarea id="prizes" placeholder="1. ödül&#10;2. ödül&#10;3. ödül"></textarea></div>
-      <div class="row">
-        <button class="btn" id="save">Kaydet</button>
-        <button class="btn" id="closeNow">Şimdi Kapat</button>
-        <button class="btn" id="draw">Kura Çek</button>
-        <button class="btn" id="notifyEnd">Bitiş Maili Gönder</button>
-        <button class="btn" id="del" style="background:linear-gradient(180deg, color-mix(in oklab, var(--danger) 18%, var(--glass)) 0%, var(--glass) 80%)">Sil</button>
-      </div>
+      <div class="muted">Form Linki: <a id="formLink" href="#" target="_blank" rel="noopener">—</a></div>
     </div>
   </section>
 
   <section class="section">
-    <div class="head"><h2>Çekilişler</h2></div>
+    <div class="head"><h2>Çekiliş Oluştur / Güncelle</h2></div>
+    <div class="content">
+      <div class="row">
+        <div class="field"><label>Başlık</label><input id="title" type="text" placeholder="Örn: MW Ağustos Çekilişi"></div>
+        <div class="field"><label>Başlangıç</label><input id="start" type="datetime-local"></div>
+        <div class="field"><label>Bitiş</label><input id="end" type="datetime-local"></div>
+        <div class="field"><label>Gönderen (e-posta)</label><input id="from" type="text" placeholder="Velour <onboarding@resend.dev>"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>YouTube Handle</label><input id="ytHandle" type="text" placeholder="@mwharp"></div>
+        <div class="field" style="min-width:360px"><label>YouTube Link</label><input id="ytLink" type="text" placeholder="https://www.youtube.com/@mwharp"></div>
+      </div>
+      <div class="field"><label>Ödüller (her satır bir derece: 1.,2.,3.…)</label><textarea id="prizes" placeholder="1. Ödül&#10;2. Ödül&#10;3. Ödül"></textarea></div>
+      <div class="row">
+        <button class="btn" id="save">Kaydet / Oluştur</button>
+        <button class="btn" id="ensure">RID’i Hemen Aç (Ensure)</button>
+        <button class="btn ghost" id="refresh">Durumu Yenile</button>
+        <button class="btn" id="closeNow">Şimdi Kapat</button>
+        <button class="btn" id="draw">Kura Çek</button>
+        <button class="btn" id="notifyEnd">Bitiş Maili</button>
+        <button class="btn" id="export">CSV Dışa Aktar</button>
+        <button class="btn" id="delete">Çekilişi Sil</button>
+      </div>
+      <div class="row">
+        <input id="codeManual" type="text" placeholder="Kod (ABCD-2345)">
+        <input id="placeManual" type="text" placeholder="Sıra (opsiyonel)">
+        <button class="btn" id="markWinner">Manuel Kazanan Yap</button>
+      </div>
+      <div class="muted" id="settingsInfo">—</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="head"><h2>Tüm Çekilişler</h2><span class="muted">10 sn’de bir yenilenir</span></div>
     <div class="content">
       <div style="overflow:auto">
         <table>
-          <thead><tr><th>RID</th><th>Başlık</th><th>Durum</th><th>Başlangıç</th><th>Bitiş</th><th>Aksiyon</th></tr></thead>
-          <tbody id="rows"><tr><td class="muted" colspan="6">Henüz veri yok.</td></tr></tbody>
+          <thead><tr><th>RID</th><th>Başlık</th><th>Başlangıç</th><th>Bitiş</th><th>Durum</th><th>Youtube</th><th>Aksiyon</th></tr></thead>
+          <tbody id="rows"><tr><td class="muted" colspan="7">Yükleniyor…</td></tr></tbody>
         </table>
       </div>
     </div>
   </section>
+
 </div>
 
 <div id="toast" class="toast"></div>
 
 <script>
-const ls=localStorage,$=s=>document.querySelector(s);const toastEl=$("#toast");
+/* ===== Sabitler ===== */
+const ls=localStorage,$=s=>document.querySelector(s);
+const toastEl=$("#toast");
+const PAGES_BASE = "https://velour433.github.io/harp-giveaway-mw.io/"; // Formun barındığı GitHub Pages dizini
+
 function toast(x){toastEl.textContent=typeof x==="string"?x:JSON.stringify(x);toastEl.classList.add("show");clearTimeout(toastEl._t);toastEl._t=setTimeout(()=>toastEl.classList.remove("show"),2600);}
+
 function sanitizeBase(v){v=(v||"").trim();if(v&&!/^https?:\/\//i.test(v))v="https://"+v;return v.replace(/\/+$/,"");}
 function hdrs(){const t=ls.getItem("adm.token")||"";return t?{ "Authorization":"Bearer "+t }:{};}
 function base(){return sanitizeBase(ls.getItem("adm.base")||"");}
 function setState(cl,tx){$("#state").innerHTML=`<span class="status-dot ${cl}"></span>${tx}`;}
-function ridNow(){return ($("#rid").value||"").trim().toLowerCase();}
+function formUrl(rid){ return PAGES_BASE + "index.html?rid=" + encodeURIComponent(rid); }
+function parsePrizes(text){ return (text||"").split(/\r?\n/).map(s=>s.trim()).filter(Boolean); }
+function fmt(n){ if(!n) return "—"; const d=new Date(n); return d.toLocaleString("tr-TR"); }
 
-const FORM_URL = (rid) => new URL(`index.html?rid=${encodeURIComponent(rid)}`, location.href).toString();
-
-/* ---- Giriş ---- */
+/* ===== Giriş ===== */
 $("#enter").onclick=async()=>{
   let b=sanitizeBase($("#base").value);const t=($("#token").value||"").trim();
   if(!b||!t) return toast("URL ve token gerekli");
   ls.setItem("adm.base",b); ls.setItem("adm.token",t);
   try{
     const ping=await fetch(b+"/"); if(!ping.ok){toast("Ping HTTP "+ping.status);return;}
-    const r=await fetch(b+"/admin/raffles",{headers:hdrs()});
-    if(r.status===401){toast("Token hatalı");return;}
-    if(!r.ok){toast("Admin ping HTTP "+r.status);return;}
+    setState("ok","Bağlı"); $("#baseShow").textContent=b;
     $("#lock").hidden=true; $("#app").hidden=false; $("#app").classList.remove("app-blur");
-    setState("ok","Bağlı"); loadList();
+    await refreshRaffleList();
+    const ridSaved=ls.getItem("adm.activeRid")||""; if(ridSaved){ $("#rid").value=ridSaved; updateFormLink(); await loadSettings(); }
+    toast("Giriş OK");
   }catch(e){toast("Hata: "+(e.message||e));}
 };
 
-/* ---- Liste ---- */
-async function loadList(){
-  try{
-    const pub = await fetch(base()+"/raffles");
-    const j = await pub.json();
-    const rows = $("#rows"); rows.innerHTML="";
-    if(!j.ok || !j.items || j.items.length===0){ rows.innerHTML='<tr><td class="muted" colspan="6">Kayıt yok.</td></tr>'; return;}
-    j.items.forEach(item=>{
-      const tr=document.createElement("tr");
-      const stNow = item.closed ? "Kapalı" : "Açık";
-      const s = item.startAt? new Date(item.startAt).toLocaleString("tr-TR") : "—";
-      const e = item.endAt?   new Date(item.endAt).toLocaleString("tr-TR")   : "—";
-      tr.innerHTML = `
-        <td><code>${item.rid}</code></td>
-        <td>${item.title||"—"}</td>
-        <td>${stNow}</td>
-        <td>${s}</td>
-        <td>${e}</td>
-        <td>
-          <button class="btn" data-act="use" data-rid="${item.rid}">Seç</button>
-          <button class="btn" data-act="openclose" data-rid="${item.rid}">${item.closed?"Aç":"Kapat"}</button>
-          <button class="btn" data-act="link" data-rid="${item.rid}">Link</button>
-          <button class="btn" data-act="del" data-rid="${item.rid}" style="background:linear-gradient(180deg, color-mix(in oklab, var(--danger) 18%, var(--glass)) 0%, var(--glass) 80%)">Sil</button>
-        </td>
-      `;
-      rows.appendChild(tr);
-    });
-  }catch(e){ toast("Liste hata: "+(e.message||e)); }
+/* ===== RID üretme ve link ===== */
+$("#ridGen").onclick=()=>{
+  const d=new Date(); const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,"0"); const dd=String(d.getDate()).padStart(2,"0");
+  const rand=Math.random().toString(36).slice(2,6);
+  const rid=`r-${y}${m}${dd}-${rand}`;
+  $("#rid").value=rid; ls.setItem("adm.activeRid",rid); updateFormLink();
+};
+$("#rid").addEventListener("input", updateFormLink);
+function updateFormLink(){
+  const rid=($("#rid").value||"").trim().toLowerCase();
+  $("#formLink").textContent=formUrl(rid);
+  $("#formLink").href=formUrl(rid);
+  $("#openForm").href=formUrl(rid);
 }
-setInterval(loadList, 6000);
 
-/* ---- Yeni çekiliş ---- */
-$("#newRaffle").onclick=()=>{
-  const rid = genRid();
-  $("#rid").value = rid;
-  const nowISO = toLocalISO(new Date());
-  $("#start").value = nowISO;
-  $("#end").value   = "";
-  $("#title").value = "Yeni Çekiliş";
-  $("#from").value  = "Velour <onboarding@resend.dev>";
-  $("#ytHandle").value = "@mwharp";
-  $("#ytLink").value   = "https://www.youtube.com/@mwharp";
-  $("#prizes").value   = "1. Ödül\n2. Ödül\n3. Ödül";
-  toast("RID oluşturuldu: "+rid);
-};
+/* ===== Aktif RID seçimi ===== */
+$("#useRid").onclick=async()=>{ const rid=($("#rid").value||"").trim().toLowerCase(); if(!rid) return toast("RID gir"); ls.setItem("adm.activeRid",rid); updateFormLink(); await loadSettings(); };
 
-/* ---- Link kopyala ---- */
-$("#copyLink").onclick=()=>{
-  const rid = ridNow(); if(!rid) return toast("RID seçili değil");
-  const url = FORM_URL(rid);
-  navigator.clipboard.writeText(url).then(()=> toast("Kopyalandı: "+url));
-};
+/* ===== Ayarları yükle/göster ===== */
+async function loadSettings(){
+  const rid=($("#rid").value||"").trim().toLowerCase(); if(!rid) return;
+  try{
+    const r=await fetch(base()+"/admin/settings?rid="+encodeURIComponent(rid),{headers:hdrs()});
+    if(r.status===404){ $("#settingsInfo").textContent="Bu RID için ayar yok."; return; }
+    if(!r.ok){ $("#settingsInfo").textContent="HTTP "+r.status; return; }
+    const j=await r.json(); const s=j.settings||{};
+    $("#title").value = s.title||"";
+    $("#from").value  = s.mailFrom || "";
+    $("#ytHandle").value = s.youtubeHandle || "";
+    $("#ytLink").value   = s.youtubeLink   || "";
+    $("#start").value = s.startAt ? new Date(s.startAt).toISOString().slice(0,16) : "";
+    $("#end").value   = s.endAt   ? new Date(s.endAt).toISOString().slice(0,16)   : "";
+    $("#prizes").value = (s.prizes||[]).join("\n");
+    $("#settingsInfo").innerHTML = `Durum: ${s.closed?"Kapalı":"Açık"} • Başlangıç: ${fmt(s.startAt)} • Bitiş: ${fmt(s.endAt)}`;
+  }catch(e){ $("#settingsInfo").textContent=String(e); }
+}
 
-/* ---- Kaydet ---- */
-$("#save").onclick=async()=>{
-  const rid = ridNow(); if(!rid) return toast("RID yok");
-  const body = {
+/* ===== Kaydet / Oluştur ===== */
+$("#save").onclick = async ()=>{
+  const rid=($("#rid").value||"").trim().toLowerCase(); if(!rid) return toast("RID gir");
+  const body={
     rid,
     title: $("#title").value.trim(),
-    startAt: dateToNumber($("#start").value),
-    endAt:   dateToNumber($("#end").value),
-    closed:  false, // varsayılan açık
+    startAt: $("#start").value ? new Date($("#start").value).getTime() : Date.now(),
+    endAt: $("#end").value ? new Date($("#end").value).getTime() : null,
+    closed: false, // ilk kurulumda açık
     mailFrom: $("#from").value.trim(),
     youtubeHandle: $("#ytHandle").value.trim(),
-    youtubeLink:   $("#ytLink").value.trim(),
-    prizes: $("#prizes").value.split("\n").map(s=>s.trim()).filter(Boolean)
+    youtubeLink: $("#ytLink").value.trim(),
+    prizes: parsePrizes($("#prizes").value)
   };
+  const r=await fetch(base()+"/admin/settings",{method:"POST",headers:{ "Content-Type":"application/json", ...hdrs() }, body:JSON.stringify(body)});
+  const j=await r.json(); if(!r.ok||!j.ok) return toast(j.error||("HTTP "+r.status));
+  toast("Kaydedildi"); ls.setItem("adm.activeRid",rid); updateFormLink(); await refreshRaffleList(); await loadSettings();
+};
+
+/* ===== Ensure (RID yoksa açık oluştur) ===== */
+$("#ensure").onclick = async ()=>{
+  const rid=($("#rid").value||"").trim().toLowerCase(); if(!rid) return toast("RID gir");
+  const r=await fetch(base()+"/admin/ensure",{method:"POST",headers:{ "Content-Type":"application/json", ...hdrs() }, body:JSON.stringify({rid, title: $("#title").value.trim()||"Çekiliş", youtubeHandle:$("#ytHandle").value.trim(), youtubeLink:$("#ytLink").value.trim(), prizes:parsePrizes($("#prizes").value) })});
+  const j=await r.json(); if(!r.ok||!j.ok) return toast(j.error||("HTTP "+r.status));
+  toast(j.created?"Oluşturuldu":"Zaten vardı"); await refreshRaffleList(); await loadSettings();
+};
+
+/* ===== Kapat / Çek / Bitiş / Export / Sil / Manual ===== */
+$("#closeNow").onclick=async()=>{ const rid=($("#rid").value||"").trim().toLowerCase(); if(!rid) return; const r=await fetch(base()+"/admin/close",{method:"POST",headers:{ "Content-Type":"application/json", ...hdrs() }, body:JSON.stringify({rid})}); const j=await r.json(); toast(j.ok?"Kapatıldı":"Hata"); await loadSettings(); };
+$("#draw").onclick=async()=>{ const rid=($("#rid").value||"").trim().toLowerCase(); if(!rid) return; const r=await fetch(base()+"/admin/draw?rid="+encodeURIComponent(rid),{method:"POST",headers:hdrs()}); const j=await r.json(); toast(j.ok?("Çekildi: "+j.drawn):"Hata"); };
+$("#notifyEnd").onclick=async()=>{ const rid=($("#rid").value||"").trim().toLowerCase(); if(!rid) return; const r=await fetch(base()+"/admin/notify-end",{method:"POST",headers:{ "Content-Type":"application/json", ...hdrs() }, body:JSON.stringify({rid})}); const j=await r.json(); toast(j.ok?("Mail: "+JSON.stringify(j.result)):"Hata"); };
+$("#export").onclick=async()=>{ const rid=($("#rid").value||"").trim().toLowerCase(); if(!rid) return; const r=await fetch(base()+"/admin/export?rid="+encodeURIComponent(rid),{headers:hdrs()}); const t=await r.text(); const blob=new Blob([t],{type:"application/json"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=`export-${rid}.json`; a.click(); URL.revokeObjectURL(url); };
+$("#delete").onclick=async()=>{ const rid=($("#rid").value||"").trim().toLowerCase(); if(!rid) return; if(!confirm(`${rid} silinsin mi?`)) return; const r=await fetch(base()+"/admin/delete",{method:"POST",headers:{ "Content-Type":"application/json", ...hdrs() }, body:JSON.stringify({rid})}); const j=await r.json(); toast(j.ok?"Silindi":"Hata"); await refreshRaffleList(); };
+$("#markWinner").onclick=async()=>{ const rid=($("#rid").value||"").trim().toLowerCase(); if(!rid) return; const code=$("#codeManual").value.trim(); const place=Number($("#placeManual").value.trim()); if(!code) return toast("Kod gir"); const r=await fetch(base()+"/admin/mark-winner",{method:"POST",headers:{ "Content-Type":"application/json", ...hdrs() }, body:JSON.stringify({rid, code, place:isFinite(place)&&place>0?place:undefined})}); const j=await r.json(); toast(j.ok?"İşaretlendi":"Hata"); };
+
+/* ===== Liste ===== */
+async function refreshRaffleList(){
   try{
-    const r=await fetch(base()+"/admin/settings",{ method:"POST", headers:{ "Content-Type":"application/json", ...hdrs() }, body:JSON.stringify(body) });
-    const j=await r.json();
-    if(!r.ok || !j.ok) throw new Error(j.error||("HTTP "+r.status));
-    toast("Kaydedildi");
-    loadList();
-  }catch(e){ toast("Kaydet hata: "+(e.message||e)); }
-};
+    const r=await fetch(base()+"/raffles"); if(!r.ok){ $("#rows").innerHTML=`<tr><td colspan="7" class="muted">HTTP ${r.status}</td></tr>`; return; }
+    const j=await r.json(); const items=j.items||[];
+    if(items.length===0){ $("#rows").innerHTML=`<tr><td colspan="7" class="muted">Henüz çekiliş yok.</td></tr>`; return; }
+    $("#rows").innerHTML = items.map(item=>{
+      const now=Date.now(); const before=item.startAt && now<item.startAt; const after=item.endAt && now>=item.endAt;
+      let dot="ok", txt="Açık";
+      if(item.closed){ dot="off"; txt="Kapalı"; }
+      else if(before){ dot="warn"; txt="Başlamadı"; }
+      else if(after){ dot="warn"; txt="Süre Bitti"; }
+      const link=formUrl(item.rid);
+      return `<tr>
+        <td><code>${item.rid}</code></td>
+        <td>${item.title||"—"}</td>
+        <td>${fmt(item.startAt)}</td>
+        <td>${fmt(item.endAt)}</td>
+        <td><span class="status-dot ${dot}"></span>${txt}</td>
+        <td><a href="${item.youtubeLink||'#'}" target="_blank" rel="noopener">${item.youtubeHandle||"—"}</a></td>
+        <td>
+          <a class="btn" href="${link}" target="_blank" rel="noopener">Formu Aç</a>
+          <button class="btn ghost" onclick="copyLink('${link.replace(/"/g,'&quot;')}')">Kopyala</button>
+          <button class="btn ghost" onclick="pickRid('${item.rid.replace(/'/g,"\\'")}')">Seç</button>
+        </td>
+      </tr>`;
+    }).join("");
+  }catch(e){ $("#rows").innerHTML=`<tr><td colspan="7" class="muted">${String(e)}</td></tr>`; }
+}
+window.copyLink = (s)=>{ navigator.clipboard.writeText(s).then(()=>toast("Kopyalandı")); }
+window.pickRid = (rid)=>{ $("#rid").value=rid; ls.setItem("adm.activeRid",rid); updateFormLink(); loadSettings(); }
+$("#refresh").onclick=refreshRaffleList;
 
-/* ---- Kapat ---- */
-$("#closeNow").onclick=async()=>{
-  const rid = ridNow(); if(!rid) return toast("RID yok");
-  const r=await fetch(base()+"/admin/close",{ method:"POST", headers:{ "Content-Type":"application/json", ...hdrs() }, body:JSON.stringify({ rid }) });
-  const j=await r.json(); if(!j.ok) return toast(j.error||"Hata");
-  toast("Kapatıldı"); loadList();
-};
-
-/* ---- Draw ---- */
-$("#draw").onclick=async()=>{
-  const rid = ridNow(); if(!rid) return toast("RID yok");
-  const r=await fetch(base()+"/admin/draw?rid="+encodeURIComponent(rid),{ method:"POST", headers:hdrs() });
-  const j=await r.json(); if(!j.ok) return toast(j.error||"Hata");
-  toast(`Kura çekildi: ${j.drawn} kazanan`);
-};
-
-/* ---- Bitiş maili ---- */
-$("#notifyEnd").onclick=async()=>{
-  const rid = ridNow(); if(!rid) return toast("RID yok");
-  const r=await fetch(base()+"/admin/notify-end",{ method:"POST", headers:{ "Content-Type":"application/json", ...hdrs() }, body:JSON.stringify({ rid }) });
-  const j=await r.json(); if(!j.ok) return toast(j.error||"Hata");
-  toast(`Gönderildi: ${j.result.sent}, atlanan: ${j.result.skipped}`);
-};
-
-/* ---- Sil ---- */
-$("#del").onclick=async()=>{
-  const rid = ridNow(); if(!rid) return toast("RID yok");
-  if(!confirm(`${rid} silinsin mi? Bu işlem geri alınamaz.`)) return;
-  const r=await fetch(base()+"/admin/delete",{ method:"POST", headers:{ "Content-Type":"application/json", ...hdrs() }, body:JSON.stringify({ rid }) });
-  const j=await r.json(); if(!j.ok) return toast(j.error||"Hata");
-  toast("Silindi"); $("#rid").value=""; loadList();
-};
-
-/* ---- Liste tablo aksiyonları ---- */
-document.addEventListener("click", async (e)=>{
-  const b = e.target.closest("button[data-act]"); if(!b) return;
-  const rid = b.getAttribute("data-rid");
-  const act = b.getAttribute("data-act");
-  if (act==="use") {
-    $("#rid").value=rid;
-    try{
-      const r=await fetch(base()+"/meta?rid="+encodeURIComponent(rid));
-      const j=await r.json();
-      if(j.ok){
-        const s=j.meta;
-        $("#title").value=s.title||"";
-        $("#start").value = s.startAt? toLocalISO(new Date(s.startAt)) : "";
-        $("#end").value   = s.endAt?   toLocalISO(new Date(s.endAt))   : "";
-        $("#ytHandle").value = s.youtubeHandle||"";
-        $("#ytLink").value   = s.youtubeLink||"";
-        // ödüller sadece admin/settings GET ile alınmak istenirse ek istek yapılabilir
-      }
-    }catch{}
-  }
-  if (act==="openclose") {
-    const isClosed = b.textContent.trim()==="Aç";
-    if (isClosed) {
-      await fetch(base()+"/admin/settings",{ method:"POST", headers:{ "Content-Type":"application/json", ...hdrs() }, body:JSON.stringify({ rid, closed:false }) });
-    } else {
-      await fetch(base()+"/admin/close",{ method:"POST", headers:{ "Content-Type":"application/json", ...hdrs() }, body:JSON.stringify({ rid }) });
-    }
-    loadList();
-  }
-  if (act==="link") {
-    const url = FORM_URL(rid);
-    navigator.clipboard.writeText(url).then(()=> toast("Kopyalandı: "+url));
-  }
-  if (act==="del") {
-    if(!confirm(`${rid} silinsin mi?`)) return;
-    await fetch(base()+"/admin/delete",{ method:"POST", headers:{ "Content-Type":"application/json", ...hdrs() }, body:JSON.stringify({ rid }) });
-    loadList();
-  }
-});
-
-/* ---- helpers ---- */
-function toLocalISO(d){ const z = d.getTimezoneOffset()*60000; return new Date(d - z).toISOString().slice(0,16); }
-function dateToNumber(v){ if(!v) return null; const d=new Date(v); const n=d.getTime(); return Number.isFinite(n)?n:null; }
-function genRid(){ const d=new Date(); const y=d.getFullYear().toString().slice(-2), m=String(d.getMonth()+1).padStart(2,"0"), da=String(d.getDate()).padStart(2,"0"); const rnd=Math.random().toString(36).slice(2,6); return `r-${y}${m}${da}-${rnd}`; }
-
-/* otomatik doldur */
-(function initPrefill(){
-  const b=ls.getItem("adm.base"); const t=ls.getItem("adm.token");
-  if(b) $("#base").value=b; if(t) $("#token").value=t;
-})();
+/* ===== Canlı Yenileme ===== */
+setInterval(refreshRaffleList, 10000);
 </script>
 </body>
 </html>
