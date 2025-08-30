@@ -60,7 +60,7 @@
 <div id="lock" class="lock">
   <div class="panel">
     <h2 style="margin:0 0 10px">Admin Girişi</h2>
-    <div class="field"><label>Worker URL</label><input id="base" type="text" placeholder="https://...workers.dev"></div>
+    <div class="field"><label>Worker URL</label><input id="base" type="text" placeholder="https://spring-dream-b90b.velour662.workers.dev"></div>
     <div class="field"><label>Bearer Token</label><input id="token" type="text" placeholder="ADMIN_TOKEN"></div>
     <div class="row"><button class="btn" id="enter">Giriş Yap</button></div>
     <p class="muted small">Bilgiler tarayıcında saklanır (localStorage).</p>
@@ -77,7 +77,7 @@
       <div class="row">
         <div class="field">
           <label>Form Sayfa URL Temeli</label>
-          <input id="formBase" type="text" placeholder="http://127.0.0.1:3000/index.html">
+          <input id="formBase" type="text" placeholder="https://velour433.github.io/harp-giveaway-mw.io/index.html">
         </div>
         <button class="btn" id="saveFormBase">Kaydet</button>
         <button class="btn ghost" id="reloadRaffles">Yenile</button>
@@ -95,7 +95,7 @@
           <tr><td class="muted" colspan="8">—</td></tr>
         </tbody>
       </table>
-      <div class="muted small">* Örnek: <code>http://127.0.0.1:3000/index.html</code> → linke <code>?rid=RID</code> eklenir.</div>
+      <div class="muted small">* Örnek: <code>.../index.html</code> → linke <code>?rid=RID</code> eklenir.</div>
     </div>
   </section>
 
@@ -167,7 +167,7 @@
       <div style="overflow:auto">
         <table>
           <thead><tr><th>Email</th><th>Oyuncu</th><th>ID</th><th>Discord</th><th>Abone</th><th>Tarih</th><th>Kazanan</th></tr></thead>
-          <tbody id="rows"><tr><td class="muted" colspan="7">Henüz veri yok.</td></tr></tbody>
+        <tbody id="rows"><tr><td class="muted" colspan="7">Henüz veri yok.</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -188,7 +188,7 @@ function fmtDate(n){return n? new Date(n).toLocaleString("tr-TR"):"—";}
 function escapeHtml(s){ return (s||"").toString().replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c])); }
 
 /* ===== Public Form URL Base (local) ===== */
-function getFormBase(){ return localStorage.getItem("adm.formBase") || "http://127.0.0.1:3000/index.html"; }
+function getFormBase(){ return localStorage.getItem("adm.formBase") || "https://velour433.github.io/harp-giveaway-mw.io/index.html"; }
 function setFormBase(v){ localStorage.setItem("adm.formBase", (v||"").trim()); }
 function buildPublicUrl(rid){
   const base = getFormBase().trim();
@@ -200,7 +200,8 @@ $("#saveFormBase").onclick = ()=>{ setFormBase($("#formBase").value||""); toast(
 
 /* ===== lock (login) ===== */
 $("#enter").onclick=async()=>{
-  let b=sanitizeBase($("#base").value);const t=($("#token").value||"").trim();
+  let b = $("#base").value.trim() || "https://spring-dream-b90b.velour662.workers.dev";
+  b=sanitizeBase(b); const t=($("#token").value||"").trim();
   if(!b||!t) return toast("URL ve token gerekli");
   ls.setItem("adm.base",b); ls.setItem("adm.token",t);
   try{
@@ -212,6 +213,9 @@ $("#enter").onclick=async()=>{
     $("#app").hidden=false; $("#app").classList.remove("app-blur");
     setState("ok","Bağlı"); toast("Giriş OK");
     await loadRaffles();
+    // rid restore
+    const savedRid = localStorage.getItem("adm.rid") || "";
+    if(savedRid){ $("#rid").value=savedRid; currentRid=savedRid; await loadSettings(); await refreshSummary(); }
   }catch(e){toast("Hata: "+(e.message||e));}
 };
 
@@ -221,6 +225,7 @@ $("#useRid").onclick = async () => {
   const v = ($("#rid").value||"").trim();
   if(!v) return toast("rid gerekli");
   currentRid = v.toLowerCase();
+  localStorage.setItem("adm.rid", currentRid);
   await loadSettings();
   await refreshSummary();
 };
@@ -242,10 +247,8 @@ async function loadSettings(){
     toast("rid yüklendi");
   }catch(e){ toast("Hata: "+(e.message||e)); }
 }
-
 $("#refresh").onclick = async ()=>{ await loadSettings(); await refreshSummary(); };
 
-/* Kaydet */
 $("#save").onclick = async ()=>{
   try{
     const body = {
@@ -291,7 +294,6 @@ $("#markWinner").onclick = async ()=>{
   toast("Kazanan işaretlendi");
   await refreshSummary();
 };
-
 $("#deleteEntry").onclick = async ()=>{
   const code = ($("#codeManual").value||"").trim();
   if(!code) return toast("Kod gerekli");
@@ -303,7 +305,6 @@ $("#deleteEntry").onclick = async ()=>{
   toast("Kayıt silindi");
   await refreshSummary();
 };
-
 $("#deleteRaffle").onclick = async ()=>{
   if(!currentRid) return toast("rid seçili değil");
   if(!confirm(`Tüm çekilişi SİLECEKSİN!\nRID: ${currentRid}\nTüm kayıtlar, ayarlar silinir. Emin misin?`)) return;
@@ -321,7 +322,6 @@ async function fetchExport(){
   const j = await r.json();
   return j.rows || [];
 }
-
 async function refreshSummary(){
   try{
     const rows = await fetchExport();
@@ -369,7 +369,6 @@ async function refreshSummary(){
     `;
   }catch(e){ toast("Özet hata: "+(e.message||e)); }
 }
-
 $("#load").onclick = refreshSummary;
 
 $("#exportJson").onclick = async ()=>{
@@ -416,7 +415,6 @@ async function loadRaffles(){
         </td>
         <td>
           <button class="btn small" data-manage="${escapeHtml(it.rid)}">Yönet</button>
-          <button class="btn danger small" data-del="${escapeHtml(it.rid)}">Sil</button>
         </td>
       `;
       tb.appendChild(tr);
@@ -429,20 +427,10 @@ async function loadRaffles(){
         const rid = b.getAttribute('data-manage');
         $("#rid").value = rid;
         currentRid = rid;
+        localStorage.setItem("adm.rid", rid);
         await loadSettings();
         await refreshSummary();
         toast("Yönetim yükleniyor: "+rid);
-      };
-    });
-    tb.querySelectorAll('button[data-del]').forEach(b=>{
-      b.onclick=async ()=>{
-        const rid = b.getAttribute('data-del');
-        if(!confirm(`Çekiliş silinsin mi?\nRID: ${rid}`)) return;
-        const r = await fetch(base()+"/admin/raffle?rid="+encodeURIComponent(rid), { method:"DELETE", headers: hdrs() });
-        if(!r.ok){ toast("Sil HTTP "+r.status); return; }
-        toast("Silindi");
-        await loadRaffles();
-        if (rid===currentRid) { $("#summary").textContent="—"; }
       };
     });
   }catch(e){ toast("Raffles hata: "+(e.message||e)); }
@@ -455,10 +443,7 @@ $("#liveToggle").addEventListener("change", (e)=>{
   if (e.target.checked){
     liveTimer = setInterval(async ()=>{
       await loadRaffles();
-      if (currentRid) {
-        // Ayarlar metası sık değişmez; sadece özet & tabloyu çek
-        await refreshSummary();
-      }
+      if (currentRid) await refreshSummary();
     }, 10000);
     toast("Canlı yenileme aktif");
   } else {
@@ -469,9 +454,9 @@ $("#liveToggle").addEventListener("change", (e)=>{
 
 /* ===== init (restore last) ===== */
 (function restore(){
-  const b=ls.getItem("adm.base"), t=ls.getItem("adm.token");
-  if(b) $("#base").value = b;
-  if(t) $("#token").value = t;
+  const savedBase = ls.getItem("adm.base");
+  $("#base").value = savedBase || "https://spring-dream-b90b.velour662.workers.dev";
+  const t=ls.getItem("adm.token"); if(t) $("#token").value=t;
   $("#formBase").value = getFormBase();
 })();
 </script>
