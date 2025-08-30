@@ -6,25 +6,13 @@
 <title>Çekiliş Formu</title>
 <meta name="color-scheme" content="dark light">
 <style>
-  :root{
-    --bg:#0b1020; --glass:#0f1733cc; --text:#ecf1ff; --muted:#a9b4d6;
-    --primary:#5ea1ff; --accent:#34d399; --danger:#ff6b6b;
-    --ring:0 0 0 3px color-mix(in oklab, var(--primary) 35%, transparent);
-    --border:1px solid rgba(255,255,255,.12); --radius:16px;
-    --shadow:0 16px 40px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.25);
-  }
+  :root{ --bg:#0b1020; --glass:#0f1733cc; --text:#ecf1ff; --muted:#a9b4d6; --primary:#5ea1ff; --accent:#34d399; --danger:#ff6b6b; --ring:0 0 0 3px color-mix(in oklab, var(--primary) 35%, transparent); --border:1px solid rgba(255,255,255,.12); --radius:16px; --shadow:0 16px 40px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.25); }
   @media (prefers-color-scheme: light){
-    :root{
-      --text:#0b1020; --muted:#4b5563; --glass:#ffffffd9; --bg:#eef3ff;
-      --border:1px solid rgba(0,0,0,.08);
-      --shadow:0 18px 36px rgba(2,6,23,.08), 0 2px 10px rgba(2,6,23,.06);
-    }
+    :root{ --text:#0b1020; --muted:#4b5563; --glass:#ffffffd9; --bg:#eef3ff; --border:1px solid rgba(0,0,0,.08); --shadow:0 18px 36px rgba(2,6,23,.08), 0 2px 10px rgba(2,6,23,.06); }
   }
   *{box-sizing:border-box} html,body{height:100%}
-  body{
-    margin:0; color:var(--text); font:16px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-    background:#000 url('https://images.wallpapersden.com/image/download/world-of-warships-gaming-2023_bW5namiUmZqaraWkpJRmbmdlrWZlbWU.jpg') center/cover fixed no-repeat;
-  }
+  body{ margin:0; color:var(--text); font:16px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    background:#000 url('https://images.wallpapersden.com/image/download/world-of-warships-gaming-2023_bW5namiUmZqaraWkpJRmbmdlrWZlbWU.jpg') center/cover fixed no-repeat; }
   .overlay{position:fixed; inset:0; background:
     radial-gradient(1000px 600px at 20% 10%, rgba(0,0,0,.45), transparent 60%),
     linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55)); pointer-events:none;}
@@ -41,79 +29,64 @@
   form{display:grid; gap:16px; padding:18px}
   .grid{display:grid; gap:12px}
   @media (min-width: 720px){ .grid.cols-2{grid-template-columns:1fr 1fr} }
-
   .field{position:relative}
-  .field input,.field select,.field textarea{
-    width:100%; padding:16px 14px 14px; border-radius:14px;
-    border:1px solid rgba(255,255,255,.10);
-    background: color-mix(in oklab, var(--glass) 92%, transparent);
-    color:var(--text); outline:none; transition:box-shadow .2s ease, border-color .2s ease, background .2s ease;
-    min-height:48px;
-  }
+  .field input,.field select,.field textarea{ width:100%; padding:16px 14px 14px; border-radius:14px; border:1px solid rgba(255,255,255,.10);
+    background: color-mix(in oklab, var(--glass) 92%, transparent); color:var(--text); outline:none; transition:box-shadow .2s, border-color .2s, background .2s; min-height:48px; }
   .field input::placeholder{color:transparent}
-  .field label{
-    position:absolute; left:12px; top:10px; padding:0 6px; pointer-events:none;
-    color:var(--muted); background:var(--glass); transform-origin:left top;
-    transition: transform .15s ease, color .2s ease, top .15s ease;
-  }
+  .field label{ position:absolute; left:12px; top:10px; padding:0 6px; pointer-events:none; color:var(--muted); background:var(--glass); transform-origin:left top; transition: transform .15s, color .2s, top .15s; }
   .field input:focus,.field select:focus,.field textarea:focus{ box-shadow:var(--ring); border-color:color-mix(in oklab, var(--primary) 40%, transparent) }
   .field input:not(:placeholder-shown)+label,
   .field input:focus+label,
   .field textarea:not(:placeholder-shown)+label,
   .field textarea:focus+label{ transform:translateY(-14px) scale(.9); color:color-mix(in oklab, var(--primary) 70%, var(--muted)); }
-  .field select:focus + label, .field select:valid + label{
-    transform:translateY(-14px) scale(.9);
-    color:color-mix(in oklab, var(--primary) 70%, var(--muted));
-  }
-
+  .field select:focus + label, .field select:valid + label{ transform:translateY(-14px) scale(.9); color:color-mix(in oklab, var(--primary) 70%, var(--muted)); }
   .row{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
   .hint{font-size:.95rem; color:var(--muted)}
   .error{border-color:var(--danger)!important}
   .error-msg{color:var(--danger); font-size:.95rem}
-  .btn{border:var(--border); background:linear-gradient(180deg, color-mix(in oklab, var(--primary) 18%, var(--glass)) 0%, var(--glass) 80%);
-    color:var(--text); padding:12px 16px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow); min-height:44px}
+  .btn{border:var(--border); background:linear-gradient(180deg, color-mix(in oklab, var(--primary) 18%, var(--glass)) 0%, var(--glass) 80%); color:var(--text);
+    padding:12px 16px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow); min-height:44px}
   .btn.ghost{background:transparent}
   .btn:disabled{opacity:.6; cursor:not-allowed}
   .btn.loading{position:relative; pointer-events:none}
   .btn.loading::after{content:""; position:absolute; right:12px; top:50%; width:16px; height:16px; transform:translateY(-50%); border-radius:50%;
     border:2px solid currentColor; border-left-color:transparent; animation:spin 0.7s linear infinite;}
   @keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
-
-  .dropzone{
-    border:2px dashed color-mix(in oklab, var(--primary) 35%, transparent);
-    border-radius:12px; padding:20px; text-align:center;
-    background: color-mix(in oklab, var(--glass) 90%, transparent)
-  }
+  .dropzone{ border:2px dashed color-mix(in oklab, var(--primary) 35%, transparent); border-radius:12px; padding:20px; text-align:center; background: color-mix(in oklab, var(--glass) 90%, transparent) }
   .dropzone.drag{background: color-mix(in oklab, var(--primary) 10%, transparent)}
   .preview{display:grid; gap:8px; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); margin-top:10px}
   .preview img{width:100%; aspect-ratio:1.3/1; object-fit:cover; border-radius:10px; border:var(--border)}
-
   .counts{display:flex; gap:12px; align-items:center; color:var(--muted); font-weight:600}
   .dot{width:6px;height:6px;border-radius:50%; background:color-mix(in oklab, var(--primary) 60%, white); box-shadow:0 0 8px var(--primary)}
-
-  .notice{
-    display:flex; gap:10px; align-items:flex-start;
-    background: color-mix(in oklab, var(--danger) 14%, var(--glass));
-    border:1px solid color-mix(in oklab, var(--danger) 28%, transparent);
-    padding:10px 12px; border-radius:12px;
-  }
+  .notice{ display:flex; gap:10px; align-items:flex-start; background: color-mix(in oklab, var(--danger) 14%, var(--glass)); border:1px solid color-mix(in oklab, var(--danger) 28%, transparent); padding:10px 12px; border-radius:12px; }
   .notice i{width:12px;height:12px;border-radius:50%; background:var(--danger); box-shadow:0 0 10px var(--danger); margin-top:4px}
-
   .footer{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:14px 18px; border-top:var(--border)}
   .toast{position:fixed; inset:auto 16px 16px auto; background:var(--glass); border:var(--border); padding:10px 12px; border-radius:10px; opacity:0; transform:translateY(10px); transition:.2s; box-shadow:var(--shadow)}
   .toast.show{opacity:1; transform:none}
-  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+  .hidden{display:none !important;}
 </style>
 </head>
 <body>
 <div class="overlay" aria-hidden="true"></div>
 
 <div class="container">
-  <div class="card">
+
+  <!-- 404 UI -->
+  <div id="card404" class="card hidden" role="alert">
+    <div class="header"><h1 class="title">404 — Çekiliş Bulunamadı</h1></div>
+    <div style="padding:18px">
+      <p>Bu <b>rid</b> için çekiliş bulunamadı veya kaldırılmış.</p>
+      <p class="hint">Linki kontrol et (ör. <code>?rid=mw-august</code>).</p>
+      <a class="btn" href="./">Ana sayfa</a>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div id="cardForm" class="card hidden">
     <div class="header">
-      <h1 class="title" data-i="title">Çekiliş Formu</h1>
+      <h1 class="title" id="pageTitle">Çekiliş Formu</h1>
       <div class="right">
-        <div class="support"><i></i><span data-i="supported">Web, Velour tarafından hazırlanmıştır</span></div>
+        <div class="support"><i></i><span id="dateInfo" class="hint">—</span></div>
         <div class="lang" role="group" aria-label="Dil">
           <button type="button" id="trBtn" aria-pressed="true">TR</button>
           <button type="button" id="enBtn" aria-pressed="false">EN</button>
@@ -122,8 +95,9 @@
     </div>
 
     <form id="gameForm" novalidate>
-      <input type="text" id="website" name="website" autocomplete="off" class="sr-only" tabindex="-1" aria-hidden="true" />
-      <input type="hidden" id="rid" name="rid" value="mw-august" />
+      <input type="text" id="website" name="website" autocomplete="off" class="hidden" tabindex="-1" aria-hidden="true" />
+      <!-- DİKKAT: rid başlangıçta BOŞ -->
+      <input type="hidden" id="rid" name="rid" value="" />
 
       <div class="grid cols-2">
         <div class="field">
@@ -159,7 +133,7 @@
           <label for="subscriber" data-i="subscriberLabel">YouTube’a abone misin? *</label>
           <p class="hint" data-i="subscriberHelp">
             YouTube kanalımıza buradan ulaşabilirsin:
-            <a href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer">@mwharp</a>
+            <a id="ytChannel" href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer">@mwharp</a>
           </p>
         </div>
       </div>
@@ -168,12 +142,12 @@
         <div>
           <div class="row">
             <strong data-i="uploadTitle">Kanıt / Görsel Yükleme</strong>
-            <span class="hint" data-i="uploadHint">YouTube abonelik ekran görüntüsü vb. (max 6 görsel | tekil ≤ 8 MB | toplam ≤ 9 MB)</span>
+            <span class="hint" data-i="uploadHint">YouTube abonelik ekran görüntüsü vb. (max 6 dosya | tekil ≤ 8 MB | toplam ≤ 9 MB)</span>
           </div>
 
           <div id="dropzone" class="dropzone" aria-label="Dosya yükleme alanı">
             <p><b data-i="dropText1">Dosyayı sürükleyip bırak</b> <span data-i="dropText2">veya tıkla.</span></p>
-            <input id="fileInput" type="file" class="sr-only" multiple accept="image/*,.pdf" />
+            <input id="fileInput" type="file" class="hidden" multiple accept="image/*,.pdf" />
             <button class="btn ghost" type="button" id="fileBrowse" data-i="chooseFile">Dosya Seç</button>
             <div id="preview" class="preview"></div>
           </div>
@@ -190,7 +164,7 @@
 
         <div class="notice">
           <i aria-hidden="true"></i>
-          <div data-i="alert">⚠ YouTube kanalımıza abone olmayanların formları dikkate alınmayacaktır. <a href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">Kanalı aç</a></div>
+          <div data-i="alert">⚠ YouTube kanalımıza abone olmayanların formları dikkate alınmayacaktır. <a id="ytChannel2" href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">Kanalı aç</a></div>
         </div>
       </div>
 
@@ -208,80 +182,55 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script>
-/* ====== Ayarlar ====== */
-const ENDPOINT_BASE = "https://spring-dream-b90b.velour662.workers.dev"; // Worker URL
-const ENDPOINT = ENDPOINT_BASE + "/submit";
-const MAX_FILES = 6;
-const MAX_FILE_SIZE = 8 * 1024 * 1024;
-const MAX_TOTAL_SIZE = 9 * 1024 * 1024;
-const ALLOWED_TYPES = ["image/jpeg","image/png","image/webp","image/gif","image/heic","image/heif","application/pdf"];
+/* ====== Worker URL ====== */
+const WORKER_BASE = "https://spring-dream-b90b.velour662.workers.dev";
+const ENDPOINT = WORKER_BASE + "/submit";
 
-/* ====== Dil ====== */
-const tr = {
-  title:"Çekiliş Formu",
-  supported:"Web, Velour tarafından hazırlanmıştır",
-  gameNameLabel:"Oyuncu Adı *", gameNameHint:"Örn: Velour",
-  gameIdLabel:"Oyuncu Kimliği *", gameIdHint:"Oyundaki benzersiz kimliğin",
-  discordLabel:"Discord Kullanıcı Adı *", discordHint:"Örn: Captain#1234 veya @kullanıcı",
-  emailLabel:"E-posta *", emailHint:"Kod bu adrese gönderilir",
-  subscriberLabel:"YouTube’a abone misin? *",
-  subscriberHelp:'YouTube kanalımıza buradan ulaşabilirsin: <a href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer">@mwharp</a>',
-  uploadTitle:"Kanıt / Görsel Yükleme",
-  uploadHint:"YouTube abonelik ekran görüntüsü vb. (max 6 dosya | tekil ≤ 8 MB | toplam ≤ 9 MB)",
-  dropText1:"Dosyayı sürükleyip bırak", dropText2:"veya tıkla.",
-  chooseFile:"Dosya Seç",
-  alert:"⚠ YouTube kanalımıza abone olmayanların formları dikkate alınmayacaktır.",
-  reset:"Sıfırla", send:"Gönder",
-  err_required:"Lütfen zorunlu alanları doldurun.",
-  toast_draft:"Taslak kaydedildi.", toast_reset:"Form sıfırlandı.", toast_sent:"Gönderildi! Teşekkürler.",
-  toast_fail_prefix:"Gönderim başarısız: "
-};
-const en = {
-  title:"Giveaway Form",
-  supported:"Website built by Velour",
-  gameNameLabel:"Player Name *", gameNameHint:"e.g., Velour",
-  gameIdLabel:"Player ID *", gameIdHint:"Your unique in-game identifier",
-  discordLabel:"Discord Username *", discordHint:"e.g., Captain#1234 or @user",
-  emailLabel:"Email *", emailHint:"Code will be sent here",
-  subscriberLabel:"Are you subscribed on YouTube? *",
-  subscriberHelp:'You can reach our YouTube channel here: <a href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer">@mwharp</a>',
-  uploadTitle:"Proof / Image Upload",
-  uploadHint:"YouTube subscription screenshot etc. (max 6 files | single ≤ 8 MB | total ≤ 9 MB)",
-  dropText1:"Drag & drop files", dropText2:"or click.",
-  chooseFile:"Choose File",
-  alert:"⚠ Entries from users not subscribed to our YouTube channel will not be considered.",
-  reset:"Reset", send:"Submit",
-  err_required:"Please fill the required fields.",
-  toast_draft:"Draft saved.", toast_reset:"Form reset.", toast_sent:"Sent! Thank you.",
-  toast_fail_prefix:"Submit failed: "
-};
-let dict = tr;
-function setText(sel,key){ const el=document.querySelector(sel); if(el) el.innerHTML=dict[key]; }
-function applyI18n(){
-  setText('[data-i="title"]','title');
-  setText('.support span','supported');
-  setText('[data-i="gameNameLabel"]','gameNameLabel'); setText('[data-i="gameNameHint"]','gameNameHint');
-  setText('[data-i="gameIdLabel"]','gameIdLabel'); setText('[data-i="gameIdHint"]','gameIdHint');
-  setText('[data-i="discordLabel"]','discordLabel'); setText('[data-i="discordHint"]','discordHint');
-  setText('[data-i="emailLabel"]','emailLabel'); setText('[data-i="emailHint"]','emailHint');
-  setText('[data-i="subscriberLabel"]','subscriberLabel');
-  setText('[data-i="subscriberHelp"]','subscriberHelp');
-  setText('[data-i="uploadTitle"]','uploadTitle'); setText('[data-i="uploadHint"]','uploadHint');
-  setText('[data-i="dropText1"]','dropText1'); setText('[data-i="dropText2"]','dropText2');
-  setText('[data-i="chooseFile"]','chooseFile');
-  setText('[data-i="alert"]','alert');
-  setText('[data-i="reset"]','reset'); setText('[data-i="send"]','send');
+/* ====== RID: URL'den al, forma yaz ====== */
+const params = new URLSearchParams(location.search);
+const currentRid = (params.get("rid")||"").trim().toLowerCase();
+document.getElementById("rid").value = currentRid;
+
+/* ====== Meta yükle, bulunamazsa sadece UI-404 göster ====== */
+(async function loadMeta(){
+  if(!currentRid){ show404(); return; }
+  try{
+    const r = await fetch(`${WORKER_BASE}/meta?rid=${encodeURIComponent(currentRid)}`, { mode:"cors" });
+    if(!r.ok){ show404(); return; }
+    const j = await r.json(); const m = j.meta || {};
+    document.title = m.title || "Çekiliş Formu";
+    const s = m.startAt ? new Date(m.startAt).toLocaleString("tr-TR") : "—";
+    const e = m.endAt   ? new Date(m.endAt).toLocaleString("tr-TR")   : "—";
+    document.getElementById("pageTitle").textContent = m.title || "Çekiliş";
+    document.getElementById("dateInfo").textContent = `${s} → ${e}${m.closed ? " • Kapalı":""}`;
+    const link = m.youtubeLink || "https://www.youtube.com/@mwharp";
+    const handle = m.youtubeHandle || "@mwharp";
+    const yt1 = document.getElementById("ytChannel"); if(yt1){ yt1.href=link; yt1.textContent=handle; }
+    const yt2 = document.getElementById("ytChannel2"); if(yt2){ yt2.href=link; }
+    document.getElementById("card404").classList.add("hidden");
+    document.getElementById("cardForm").classList.remove("hidden");
+  }catch(e){ show404(); }
+})();
+function show404(){
+  document.getElementById("cardForm").classList.add("hidden");
+  document.getElementById("card404").classList.remove("hidden");
 }
-const trBtn=document.getElementById('trBtn'), enBtn=document.getElementById('enBtn');
-trBtn.addEventListener('click', ()=>{ dict=tr; trBtn.setAttribute('aria-pressed','true'); enBtn.setAttribute('aria-pressed','false'); applyI18n(); });
-enBtn.addEventListener('click', ()=>{ dict=en; enBtn.setAttribute('aria-pressed','true'); trBtn.setAttribute('aria-pressed','false'); applyI18n(); });
+
+/* ====== Dil (kısaltılmış) ====== */
+const tr = { gameNameLabel:"Oyuncu Adı *", gameNameHint:"Örn: Velour", gameIdLabel:"Oyuncu Kimliği *", gameIdHint:"Oyundaki benzersiz kimliğin", discordLabel:"Discord Kullanıcı Adı *", discordHint:"Örn: Captain#1234 veya @kullanıcı", emailLabel:"E-posta *", emailHint:"Kod bu adrese gönderilir", subscriberLabel:"YouTube’a abone misin? *", uploadTitle:"Kanıt / Görsel Yükleme", uploadHint:"YouTube abonelik ekran görüntüsü vb. (max 6 dosya | tekil ≤ 8 MB | toplam ≤ 9 MB)", dropText1:"Dosyayı sürükleyip bırak", dropText2:"veya tıkla.", chooseFile:"Dosya Seç", alert:"⚠ YouTube kanalımıza abone olmayanların formları dikkate alınmayacaktır.", reset:"Sıfırla", send:"Gönder", err_required:"Lütfen zorunlu alanları doldurun.", toast_reset:"Form sıfırlandı.", toast_sent:"Gönderildi! Teşekkürler.", toast_fail_prefix:"Gönderim başarısız: " };
+const en = { gameNameLabel:"Player Name *", gameNameHint:"e.g., Velour", gameIdLabel:"Player ID *", gameIdHint:"Your unique in-game identifier", discordLabel:"Discord Username *", discordHint:"e.g., Captain#1234 or @user", emailLabel:"Email *", emailHint:"Code will be sent here", subscriberLabel:"Are you subscribed on YouTube? *", uploadTitle:"Proof / Image Upload", uploadHint:"YouTube subscription screenshot etc. (max 6 files | single ≤ 8 MB | total ≤ 9 MB)", dropText1:"Drag & drop files", dropText2:"or click.", chooseFile:"Choose File", alert:"⚠ Entries from users not subscribed to our YouTube channel will not be considered.", reset:"Reset", send:"Submit", err_required:"Please fill the required fields.", toast_reset:"Form reset.", toast_sent:"Sent! Thank you.", toast_fail_prefix:"Submit failed: " };
+let dict = tr;
+function tSet(sel,key){ const el=document.querySelector(sel); if(el) el.innerHTML=dict[key]; }
+function applyI18n(){ tSet('[for="gameName"]','gameNameLabel'); tSet('[data-i="gameNameHint"]','gameNameHint'); tSet('[for="gameId"]','gameIdLabel'); tSet('[data-i="gameIdHint"]','gameIdHint'); tSet('[for="discord"]','discordLabel'); tSet('[data-i="discordHint"]','discordHint'); tSet('[for="email"]','emailLabel'); tSet('[data-i="emailHint"]','emailHint'); tSet('[for="subscriber"]','subscriberLabel'); tSet('[data-i="uploadTitle"]','uploadTitle'); tSet('[data-i="uploadHint"]','uploadHint'); tSet('[data-i="dropText1"]','dropText1'); tSet('[data-i="dropText2"]','dropText2'); tSet('[data-i="chooseFile"]','chooseFile'); tSet('[data-i="alert"]','alert'); tSet('[data-i="reset"]','reset'); tSet('[data-i="send"]','send'); }
+document.getElementById('trBtn').addEventListener('click', ()=>{ dict=tr; document.getElementById('trBtn').setAttribute('aria-pressed','true'); document.getElementById('enBtn').setAttribute('aria-pressed','false'); applyI18n(); });
+document.getElementById('enBtn').addEventListener('click', ()=>{ dict=en; document.getElementById('enBtn').setAttribute('aria-pressed','true'); document.getElementById('trBtn').setAttribute('aria-pressed','false'); applyI18n(); });
 applyI18n();
 
-/* ====== Yardımcılar ====== */
+/* ====== Helpers, Dropzone, Gönderim ====== */
 const $ = s => document.querySelector(s);
 function toast(msg, ms=2500){ const t=$("#toast"); t.textContent = typeof msg==="string"?msg:JSON.stringify(msg); t.classList.add("show"); clearTimeout(t._timer); t._timer=setTimeout(()=>t.classList.remove("show"), ms); }
-
-/* ====== Dropzone & Sayaç ====== */
+const MAX_FILES = 6, MAX_FILE_SIZE = 8*1024*1024, MAX_TOTAL_SIZE = 9*1024*1024;
+const ALLOWED_TYPES = ["image/jpeg","image/png","image/webp","image/gif","image/heic","image/heif","application/pdf"];
 const drop = $("#dropzone"), finput=$("#fileInput"), browse=$("#fileBrowse"), preview=$("#preview");
 const fileCountEl=$("#fileCount"), fileSizeEl=$("#fileSize");
 browse.addEventListener("click", ()=> finput.click());
@@ -289,18 +238,11 @@ browse.addEventListener("click", ()=> finput.click());
 ["dragleave","drop"].forEach(evt=> drop.addEventListener(evt, e=>{ e.preventDefault(); drop.classList.remove("drag"); }));
 drop.addEventListener("drop", e=> handleFiles(e.dataTransfer.files));
 finput.addEventListener("change", ()=> handleFiles(finput.files));
-
 let filesState = [];
 function bytesToMB(n){ return Math.round(n/1024/1024); }
-function refreshCounters(){
-  const total = filesState.reduce((a,f)=>a+f.size,0);
-  fileCountEl.textContent = `${filesState.length} / ${MAX_FILES}`;
-  fileSizeEl.textContent  = `${bytesToMB(total)} MB / 9 MB`;
-}
+function refreshCounters(){ const total = filesState.reduce((a,f)=>a+f.size,0); fileCountEl.textContent = `${filesState.length} / ${MAX_FILES}`; fileSizeEl.textContent  = `${bytesToMB(total)} MB / 9 MB`; }
 function handleFiles(list){
-  const arr = [...list];
-  let picked = arr.slice(0, MAX_FILES);
-  let total = 0; const valid = [];
+  const arr = [...list]; let picked = arr.slice(0, MAX_FILES); let total = 0; const valid = [];
   for(const f of picked){
     if(!ALLOWED_TYPES.includes(f.type)){ toast(`${f.name}: ${f.type || "unknown"} türü desteklenmiyor`); continue; }
     if(f.size > MAX_FILE_SIZE){ toast(`${f.name}: dosya çok büyük (>${(MAX_FILE_SIZE/1024/1024)|0} MB)`); continue; }
@@ -311,68 +253,50 @@ function handleFiles(list){
   preview.innerHTML="";
   filesState.forEach(file=>{
     const card = document.createElement("div");
-    if(file.type.startsWith("image/")){
-      const img = document.createElement("img"); img.alt = file.name; card.appendChild(img);
-      const reader = new FileReader(); reader.onload = ev => img.src = ev.target.result; reader.readAsDataURL(file);
-    } else {
-      card.innerHTML = `<div class="hint" style="border:var(--border);border-radius:10px;padding:8px">${file.name}</div>`;
-    }
+    if(file.type.startsWith("image/")){ const img = document.createElement("img"); img.alt = file.name; card.appendChild(img);
+      const reader = new FileReader(); reader.onload = ev => img.src = ev.target.result; reader.readAsDataURL(file); }
+    else { card.innerHTML = `<div class="hint" style="border:var(--border);border-radius:10px;padding:8px">${file.name}</div>`; }
     preview.appendChild(card);
   });
-  if(arr.length > MAX_FILES) toast(`En fazla ${MAX_FILES} dosya yükleyebilirsin.`);
-  refreshCounters();
+  if(arr.length > MAX_FILES) toast(`En fazla ${MAX_FILES} dosya yükleyebilirsin.`); refreshCounters();
 }
 refreshCounters();
 
-/* ====== Doğrulama & Gönderim ====== */
-function validate(){
-  if (document.getElementById("website").value) { return false; } // honeypot
-  let ok=true; $("#formErrors").textContent="";
-  ["#gameName","#gameId","#discord","#email","#subscriber"].forEach(sel=>{
-    const el=$(sel); el.classList.remove("error");
-    if(!el.value || (el.tagName==="SELECT" && el.value==="")){
-      el.classList.add("error"); ok=false;
-    }
-  });
-  if(!ok){ $("#formErrors").innerHTML=`<span class="error-msg">${dict.err_required}</span>`; }
-  return ok;
-}
 async function sendToWorker(signal){
+  const ridVal = $("#rid").value.trim();
+  if(!ridVal){ throw new Error("RID yok. Linki ?rid=... ile aç."); }
   const fd = new FormData();
-  fd.append("rid", $("#rid").value.trim());
+  fd.append("rid", ridVal);
   fd.append("gameName", $("#gameName").value.trim());
   fd.append("gameId", $("#gameId").value.trim());
   fd.append("discord", $("#discord").value.trim());
   fd.append("email", $("#email").value.trim());
   fd.append("subscriber", $("#subscriber").value);
-  filesState.forEach((file)=> fd.append("attachments", file, file.name));
-
-  const res = await fetch(ENDPOINT + "?rid=" + encodeURIComponent($("#rid").value.trim()), {
-    method:"POST", body: fd, signal, mode:"cors"
-  });
-  const text = await res.text(); let json={};
-  try{ json=JSON.parse(text); }catch{ json={ ok:false, error:text||"Beklenmeyen cevap" }; }
+  filesState.forEach((f)=> fd.append("attachments", f, f.name));
+  const res = await fetch(ENDPOINT + "?rid=" + encodeURIComponent(ridVal), { method:"POST", body: fd, signal, mode:"cors" });
+  const text = await res.text(); let json={}; try{ json=JSON.parse(text); }catch{ json={ ok:false, error:text||"Beklenmeyen cevap" }; }
   if(!res.ok || !json.ok){ throw new Error(json.error || `Hata: HTTP ${res.status}`); }
   return true;
 }
-const form = $("#gameForm"); const sendBtn = $("#sendBtn");
+const form = $("#gameForm"), sendBtn = $("#sendBtn");
 form.addEventListener("submit", async (e)=>{
   e.preventDefault(); if(!validate()) return;
   const controller = new AbortController(); const t = setTimeout(()=> controller.abort(), 30000);
   sendBtn.disabled = true; sendBtn.classList.add("loading");
-  try{
-    await sendToWorker(controller.signal);
-    toast(dict.toast_sent);
-    form.reset(); filesState=[]; $("#preview").innerHTML=""; refreshCounters();
-  }catch(err){
-    console.error(err); toast(dict.toast_fail_prefix + (err.message || "Bilinmeyen hata"), 4000);
-  }finally{
-    clearTimeout(t); sendBtn.disabled=false; sendBtn.classList.remove("loading");
-  }
+  try{ await sendToWorker(controller.signal); toast("Gönderildi! Teşekkürler."); form.reset(); filesState=[]; $("#preview").innerHTML=""; refreshCounters(); }
+  catch(err){ console.error(err); toast("Gönderim başarısız: " + (err.message || "Bilinmeyen hata"), 4000); }
+  finally{ clearTimeout(t); sendBtn.disabled=false; sendBtn.classList.remove("loading"); }
 });
-document.getElementById("resetBtn").addEventListener("click", ()=>{
-  filesState=[]; $("#preview").innerHTML=""; refreshCounters(); toast(dict.toast_reset);
-});
+function validate(){
+  if (document.getElementById("website").value) { return false; }
+  let ok=true; $("#formErrors").textContent="";
+  ["#gameName","#gameId","#discord","#email","#subscriber"].forEach(sel=>{
+    const el=$(sel); el.classList.remove("error");
+    if(!el.value || (el.tagName==="SELECT" && el.value==="")){ el.classList.add("error"); ok=false; }
+  });
+  if(!ok){ $("#formErrors").innerHTML=`<span class="error-msg">Lütfen zorunlu alanları doldurun.</span>`; }
+  return ok;
+}
 </script>
 </body>
 </html>
