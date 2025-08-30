@@ -91,19 +91,16 @@
   .counts{display:flex; gap:12px; align-items:center; color:var(--muted); font-weight:600}
   .dot{width:6px;height:6px;border-radius:50%; background:color-mix(in oklab, var(--primary) 60%, white); box-shadow:0 0 8px var(--primary)}
 
-  .notice{
-    display:flex; gap:10px; align-items:flex-start;
-    background: color-mix(in oklab, var(--danger) 14%, var(--glass));
-    border:1px solid color-mix(in oklab, var(--danger) 28%, transparent);
-    padding:10px 12px; border-radius:12px;
-  }
-  .notice i{width:12px;height:12px;border-radius:50%; background:var(--danger); box-shadow:0 0 10px var(--danger); margin-top:4px}
-
   .footer{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:14px 18px; border-top:var(--border)}
   .toast{position:fixed; inset:auto 16px 16px auto; background:var(--glass); border:var(--border); padding:10px 12px; border-radius:10px; opacity:0; transform:translateY(10px); transition:.2s; box-shadow:var(--shadow)}
   .toast.show{opacity:1; transform:none}
 
+  /* 404 */
   .hidden{display:none !important;}
+  .raffle-list{display:grid; gap:8px; margin-top:10px}
+  .raffle-item{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 12px; border:var(--border); border-radius:12px; background:color-mix(in oklab, var(--glass) 96%, transparent)}
+  .raffle-item b{font-size:1rem}
+  .muted{color:var(--muted)}
 </style>
 </head>
 <body>
@@ -116,8 +113,12 @@
     <div class="header"><h1 class="title">404 — Çekiliş Bulunamadı</h1></div>
     <div style="padding:18px">
       <p>İstediğin <b>rid</b> için bir çekiliş bulunamadı veya kaldırılmış.</p>
-      <p class="hint">Linki kontrol et (ör. <code>?rid=mw-august</code>).</p>
-      <a class="btn" href="./">Ana sayfa</a>
+      <p class="hint">Linki kontrol et (ör. <code>?rid=mw-august</code>), ya da aşağıdan mevcut çekilişlerden birini seç.</p>
+      <div id="raffleList" class="raffle-list"></div>
+      <div class="row" style="margin-top:10px">
+        <a class="btn" id="homeBtn" href="./index.html">Ana sayfa</a>
+        <a class="btn ghost" id="retryBtn" href="#">Yeniden Dene</a>
+      </div>
     </div>
   </div>
 
@@ -225,17 +226,30 @@
 const WORKER_BASE = "https://spring-dream-b90b.velour662.workers.dev";
 const ENDPOINT = WORKER_BASE + "/submit";
 
+/* ====== GH Pages alt-dizin link üretici ====== */
+function pagesBase(){
+  // /harp-giveaway-mw.io/ altında da /index.html’de de çalışır
+  const p = location.pathname.replace(/index\.html$/,'');
+  return location.origin + p;
+}
+function pageLinkForRid(rid){
+  return pagesBase() + "index.html?rid=" + encodeURIComponent(rid);
+}
+
 /* ====== rid + meta ====== */
 const params = new URLSearchParams(location.search);
 const currentRid = (params.get("rid")||"").trim().toLowerCase();
 document.getElementById("rid").value = currentRid;
 
+document.getElementById("retryBtn").addEventListener("click",(e)=>{ e.preventDefault(); loadMetaOr404(); });
+document.getElementById("homeBtn").setAttribute("href", pagesBase()+"index.html");
+
 async function loadMetaOr404(){
-  if(!currentRid){ show404(); return; }
+  if(!currentRid){ show404(); await tryListRaffles(); return; }
   try{
     const r = await fetch(`${WORKER_BASE}/meta?rid=${encodeURIComponent(currentRid)}`, { mode:"cors" });
-    if(r.status===404){ show404(); return; }
-    if(!r.ok){ show404(); return; }
+    if(r.status===404){ show404(); await tryListRaffles(); return; }
+    if(!r.ok){ show404(); await tryListRaffles(); return; }
     const j = await r.json();
     const m = j.meta || {};
     // başlık
@@ -252,16 +266,40 @@ async function loadMetaOr404(){
     const yt2 = document.getElementById("ytChannel2");
     yt1.href = link; yt1.textContent = handle;
     yt2.href = link;
-    // kart görünürlüğü
+    // göster
     document.getElementById("card404").classList.add("hidden");
     document.getElementById("cardForm").classList.remove("hidden");
   }catch{
-    show404();
+    show404(); await tryListRaffles();
   }
 }
 function show404(){
   document.getElementById("cardForm").classList.add("hidden");
   document.getElementById("card404").classList.remove("hidden");
+}
+async function tryListRaffles(){
+  const listEl = document.getElementById("raffleList");
+  listEl.innerHTML = '<div class="muted">Yükleniyor…</div>';
+  try{
+    const r = await fetch(`${WORKER_BASE}/raffles`, { mode:"cors" });
+    if(!r.ok){ listEl.innerHTML = '<div class="muted">Liste alınamadı.</div>'; return; }
+    const j = await r.json();
+    const items = (j.items||[]).filter(x=>x && x.rid);
+    if(!items.length){ listEl.innerHTML = '<div class="muted">Şu an listelenecek çekiliş yok.</div>'; return; }
+    listEl.innerHTML = "";
+    for(const it of items){
+      const row = document.createElement("div");
+      row.className = "raffle-item";
+      const left = document.createElement("div");
+      left.innerHTML = `<b>${it.title || it.rid}</b><div class="muted">${it.rid}</div>`;
+      const a = document.createElement("a");
+      a.className = "btn"; a.href = pageLinkForRid(it.rid); a.textContent = "Aç";
+      row.appendChild(left); row.appendChild(a);
+      listEl.appendChild(row);
+    }
+  }catch{
+    listEl.innerHTML = '<div class="muted">Liste alınamadı.</div>';
+  }
 }
 
 /* ====== i18n ====== */
@@ -364,7 +402,7 @@ function validate(){
     const el=$(sel); el.classList.remove("error");
     if(!el.value || (el.tagName==="SELECT" && el.value==="")){ el.classList.add("error"); ok=false; }
   });
-  if(!ok){ $("#formErrors").innerHTML=`<span class="error-msg">${dict.err_required}</span>`; }
+  if(!ok){ $("#formErrors").innerHTML=`<span class="error-msg">Lütfen zorunlu alanları doldurun.</span>`; }
   return ok;
 }
 async function sendToWorker(signal){
@@ -377,7 +415,7 @@ async function sendToWorker(signal){
   fd.append("subscriber", $("#subscriber").value);
   filesState.forEach((file)=> fd.append("attachments", file, file.name));
 
-  // aynı e-postada güncelleme için replace=1
+  // replace=1: aynı e-postayla tekrar denemede 409 yerine güncelle
   const res = await fetch(ENDPOINT + "?rid=" + encodeURIComponent($("#rid").value.trim()) + "&replace=1", {
     method:"POST", body: fd, signal, mode:"cors"
   });
@@ -393,16 +431,16 @@ form.addEventListener("submit", async (e)=>{
   sendBtn.disabled = true; sendBtn.classList.add("loading");
   try{
     await sendToWorker(controller.signal);
-    toast(dict.toast_sent);
+    toast("Gönderildi! Teşekkürler.");
     form.reset(); filesState=[]; $("#preview").innerHTML=""; refreshCounters();
   }catch(err){
-    console.error(err); toast(dict.toast_fail_prefix + (err.message || "Bilinmeyen hata"), 4000);
+    console.error(err); toast("Gönderim başarısız: " + (err.message || "Bilinmeyen hata"), 4000);
   }finally{
     clearTimeout(t); sendBtn.disabled=false; sendBtn.classList.remove("loading");
   }
 });
 document.getElementById("resetBtn").addEventListener("click", ()=>{
-  filesState=[]; $("#preview").innerHTML=""; refreshCounters(); toast(dict.toast_reset);
+  filesState=[]; $("#preview").innerHTML=""; refreshCounters(); toast("Form sıfırlandı.");
 });
 
 /* ====== init ====== */
