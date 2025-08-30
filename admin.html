@@ -44,14 +44,12 @@ tbody tr td:last-child{border-right:var(--border); border-top-right-radius:10px;
     <div class="field"><label>Worker URL</label><input id="base" type="text" placeholder="https://spring-dream-....workers.dev"></div>
     <div class="field"><label>Bearer Token</label><input id="token" type="text" placeholder="ADMIN_TOKEN"></div>
     <div class="row"><button class="btn" id="enter">Giriş Yap</button></div>
-    <p class="tag">Bilgiler tarayıcıda saklanır (localStorage).</p>
+    <p class="tag">Bilgiler localStorage’da saklanır.</p>
   </div>
 </div>
 
 <!-- APP -->
 <div class="wrap app-blur" id="app" hidden>
-
-  <!-- Çekiliş Oluştur -->
   <section class="section">
     <div class="head"><h2>Yeni Çekiliş Oluştur</h2></div>
     <div class="content">
@@ -62,22 +60,20 @@ tbody tr td:last-child{border-right:var(--border); border-top-right-radius:10px;
         <div class="field"><label>YouTube Link</label><input id="newYtLink" type="text" placeholder="https://www.youtube.com/@mwharp"></div>
       </div>
       <div class="row"><button class="btn" id="create">Oluştur</button><button class="btn ghost" id="genRid">RID üret</button></div>
-      <p class="tag">RID benzersiz olmalı. Oluştur tuşu bu çekilişin ayarlarını kaydeder (yoksa oluşturur).</p>
+      <p class="tag">“Oluştur”, girilen RID altında ayar kaydeder (yoksa oluşturur).</p>
     </div>
   </section>
 
-  <!-- Çekilişler -->
   <section class="section">
     <div class="head"><h2>Tüm Çekilişler</h2><button class="btn ghost" id="refreshList">Yenile</button></div>
     <div class="content" style="overflow:auto">
       <table>
         <thead><tr><th>RID</th><th>Başlık</th><th>Başlangıç</th><th>Bitiş</th><th>Durum</th><th>Kat./Kaz.</th><th>Aksiyon</th></tr></thead>
-        <tbody id="raffleRows"><tr><td class="tag">Yükleniyor…</td></tr></tbody>
+      <tbody id="raffleRows"><tr><td class="tag">Yükleniyor…</td></tr></tbody>
       </table>
     </div>
   </section>
 
-  <!-- Seçili Yönetim -->
   <section class="section" id="manageSec" hidden>
     <div class="head"><h2>Yönet: <span id="curRidTag" class="tag"></span></h2></div>
     <div class="content">
@@ -97,198 +93,108 @@ tbody tr td:last-child{border-right:var(--border); border-top-right-radius:10px;
       <div class="row"><input id="codeDel" type="text" placeholder="Kod"><button class="btn" id="delEntry">Bu Kaydı Sil</button></div>
     </div>
   </section>
-
 </div>
+
 <div id="toast" class="toast"></div>
 
 <script>
 (function(){
-  var ls=localStorage;
-  var $=function(s){ return document.querySelector(s); };
-  function toast(x){var t=$("#toast"); t.textContent=typeof x==="string"?x:JSON.stringify(x); t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove("show");},2600);}
-  function sanitizeBase(v){ v=(v||"").trim(); if(v && !/^https?:\/\//i.test(v)) v="https://"+v; return v.replace(/\/+$/,""); }
-  function hdrs(){ var t=ls.getItem("adm.token")||""; return t?{ "Authorization":"Bearer "+t }:{}; }
-  function base(){ return sanitizeBase(ls.getItem("adm.base")||""); }
-
-  function genRid(){
-    var d=new Date();
-    var y=String(d.getFullYear()).slice(2);
-    var m=("0"+(d.getMonth()+1)).slice(-2);
-    var day=("0"+d.getDate()).slice(-2);
-    var pool="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; var r=""; for(var i=0;i<4;i++) r+=pool[Math.floor(Math.random()*pool.length)];
-    return "r-"+y+m+day+"-"+r;
-  }
+  var ls=localStorage, $=function(s){return document.querySelector(s);};
+  function toast(x){var t=$("#toast");t.textContent=typeof x==="string"?x:JSON.stringify(x);t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove("show");},2600);}
+  function sanitizeBase(v){v=(v||"").trim(); if(v&&!/^https?:\/\//i.test(v)) v="https://"+v; return v.replace(/\/+$/,"");}
+  function hdrs(){var t=ls.getItem("adm.token")||""; return t?{"Authorization":"Bearer "+t}:{ }; }
+  function base(){return sanitizeBase(ls.getItem("adm.base")||"");}
+  function genRid(){var d=new Date();var y=(""+d.getFullYear()).slice(2);var m=("0"+(d.getMonth()+1)).slice(-2);var day=("0"+d.getDate()).slice(-2);var pool="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";var r="";for(var i=0;i<4;i++) r+=pool[Math.floor(Math.random()*pool.length)];return "r-"+y+m+day+"-"+r;}
 
   $("#enter").onclick=function(){
-    var b=sanitizeBase($("#base").value);
-    var t=($("#token").value||"").trim();
+    var b=sanitizeBase($("#base").value), t=($("#token").value||"").trim();
     if(!b||!t){ toast("URL ve token gerekli"); return; }
     ls.setItem("adm.base",b); ls.setItem("adm.token",t);
-    fetch(b+"/",{mode:"cors"}).then(function(ping){
-      if(!ping.ok){ toast("Ping HTTP "+ping.status); return; }
+    fetch(b+"/",{mode:"cors"}).then(function(r){
+      if(!r.ok){ toast("Ping HTTP "+r.status); return; }
       $("#lock").hidden=true; $("#app").hidden=false; $(".wrap").classList.remove("app-blur");
-      $("#newRid").value = genRid();
-      loadList();
-      autoRefresh();
+      $("#newRid").value=genRid(); loadList(); autoRefresh();
     }).catch(function(e){ toast("Hata: "+(e.message||e)); });
   };
-
-  $("#genRid").onclick=function(){ $("#newRid").value = genRid(); };
+  $("#genRid").onclick=function(){ $("#newRid").value=genRid(); };
 
   function loadList(){
-    fetch(base()+"/admin/raffles",{headers:hdrs(),mode:"cors"}).then(function(r){
-      if(!r.ok){ toast("Liste HTTP "+r.status); return; }
-      return r.json();
-    }).then(function(j){
-      if(!j) return;
-      var tb=$("#raffleRows"); tb.innerHTML="";
-      var list=j.raffles||[];
-      if(!list.length){ tb.innerHTML='<tr><td class="tag" colspan="7">Henüz çekiliş yok.</td></tr>'; return; }
+    fetch(base()+"/admin/raffles",{headers:hdrs(),mode:"cors"}).then(function(r){ if(!r.ok){toast("Liste HTTP "+r.status); return;} return r.json();}).then(function(j){
+      if(!j) return; var tb=$("#raffleRows"); tb.innerHTML=""; var list=j.raffles||[]; if(!list.length){tb.innerHTML='<tr><td class="tag" colspan="7">Henüz çekiliş yok.</td></tr>'; return;}
       list.forEach(function(x){
         var tr=document.createElement("tr");
-        var st=x.closed?"Kapalı":"Açık";
-        var entries=(x.totals && x.totals.entries)||0;
-        var winners=(x.totals && x.totals.winners)||0;
-        tr.innerHTML =
-          '<td><code>'+x.rid+'</code></td>'+
+        tr.innerHTML='<td><code>'+x.rid+'</code></td>'+
           '<td>'+(x.title||"—")+'</td>'+
-          '<td>'+(x.startAt? new Date(x.startAt).toLocaleString("tr-TR"):"—")+'</td>'+
-          '<td>'+(x.endAt? new Date(x.endAt).toLocaleString("tr-TR"):"—")+'</td>'+
-          '<td>'+st+'</td>'+
-          '<td>'+entries+' / '+winners+'</td>'+
-          '<td>'+
-            '<button class="btn" data-act="manage" data-rid="'+x.rid+'">Yönet</button> '+
-            '<button class="btn ghost" data-act="delete" data-rid="'+x.rid+'">Sil</button> '+
-            '<a class="btn ghost" href="../index.html?rid='+encodeURIComponent(x.rid)+'" target="_blank" rel="noopener">Aç</a>'+
-          '</td>';
+          '<td>'+(x.startAt?new Date(x.startAt).toLocaleString("tr-TR"):"—")+'</td>'+
+          '<td>'+(x.endAt?new Date(x.endAt).toLocaleString("tr-TR"):"—")+'</td>'+
+          '<td>'+(x.closed?"Kapalı":"Açık")+'</td>'+
+          '<td>'+((x.totals&&x.totals.entries)||0)+' / '+((x.totals&&x.totals.winners)||0)+'</td>'+
+          '<td><button class="btn" data-act="manage" data-rid="'+x.rid+'">Yönet</button> '+
+          '<button class="btn ghost" data-act="delete" data-rid="'+x.rid+'">Sil</button> '+
+          '<a class="btn ghost" href="./index.html?rid='+encodeURIComponent(x.rid)+'" target="_blank" rel="noopener">Aç</a></td>';
         tb.appendChild(tr);
       });
-      tb.querySelectorAll("button[data-act]").forEach(function(btn){
-        btn.onclick=function(e){
-          var rid=e.currentTarget.getAttribute("data-rid");
-          var act=e.currentTarget.getAttribute("data-act");
-          if(act==="manage"){ selectRid(rid); }
-          if(act==="delete"){
-            if(confirm(rid+" silinsin mi?")){ delRaffle(rid); }
-          }
-        };
+      tb.querySelectorAll("button[data-act]").forEach(function(b){
+        b.onclick=function(e){ var rid=e.currentTarget.getAttribute("data-rid"); var act=e.currentTarget.getAttribute("data-act"); if(act==="manage") selectRid(rid); if(act==="delete" && confirm(rid+" silinsin mi?")) delRaffle(rid); };
       });
     }).catch(function(e){ toast("Liste hata: "+(e.message||e)); });
   }
+  $("#refreshList").onclick=loadList;
 
   function delRaffle(rid){
-    fetch(base()+"/admin/raffle?rid="+encodeURIComponent(rid),{method:"DELETE",headers:hdrs(),mode:"cors"}).then(function(r){
-      if(!r.ok){ toast("Sil HTTP "+r.status); return; }
-      toast("Silindi");
-      if (ls.getItem("adm.rid")===rid){ ls.removeItem("adm.rid"); $("#manageSec").hidden=true; }
-      loadList();
-    }).catch(function(e){ toast("Sil hata: "+(e.message||e)); });
+    fetch(base()+"/admin/raffle?rid="+encodeURIComponent(rid),{method:"DELETE",headers:hdrs(),mode:"cors"}).then(function(r){ if(!r.ok){toast("Sil HTTP "+r.status); return;} toast("Silindi"); if(ls.getItem("adm.rid")===rid){ ls.removeItem("adm.rid"); $("#manageSec").hidden=true; } loadList(); }).catch(function(e){ toast("Sil hata: "+(e.message||e)); });
   }
 
   $("#create").onclick=function(){
     var rid=($("#newRid").value||"").trim().toLowerCase(); if(!rid){ toast("RID gerekli"); return; }
-    var body={
-      title: ($("#newTitle").value||"").trim()||"Çekiliş",
-      youtubeHandle: ($("#newYtHandle").value||"").trim()||"@mwharp",
-      youtubeLink: ($("#newYtLink").value||"").trim()||"https://www.youtube.com/@mwharp"
-    };
-    fetch(base()+"/admin/settings?rid="+encodeURIComponent(rid),{
-      method:"POST", headers:Object.assign({},hdrs(),{"Content-Type":"application/json"}), body:JSON.stringify(body), mode:"cors"
-    }).then(function(r){
-      if(!r.ok){ toast("Oluştur HTTP "+r.status); return; }
-      toast("Oluşturuldu");
-      $("#newRid").value = genRid();
-      loadList();
-    }).catch(function(e){ toast("Oluştur hata: "+(e.message||e)); });
+    var body={ title:($("#newTitle").value||"").trim()||"Çekiliş", youtubeHandle:($("#newYtHandle").value||"").trim()||"@mwharp", youtubeLink:($("#newYtLink").value||"").trim()||"https://www.youtube.com/@mwharp" };
+    fetch(base()+"/admin/settings?rid="+encodeURIComponent(rid),{ method:"POST", headers:Object.assign({},hdrs(),{"Content-Type":"application/json"}), body:JSON.stringify(body), mode:"cors"}).then(function(r){ if(!r.ok){ toast("Oluştur HTTP "+r.status); return;} toast("Oluşturuldu"); $("#newRid").value=genRid(); loadList(); }).catch(function(e){ toast("Oluştur hata: "+(e.message||e)); });
   };
 
   function selectRid(rid){
-    ls.setItem("adm.rid", rid);
-    $("#curRidTag").textContent=rid; $("#manageSec").hidden=false;
-    fetch(base()+"/admin/settings?rid="+encodeURIComponent(rid),{headers:hdrs(),mode:"cors"}).then(function(r){
-      if(!r.ok){ toast("Ayar HTTP "+r.status); return; }
-      return r.json();
-    }).then(function(j){
-      if(!j) return;
-      var s=j.settings||{};
-      $("#title").value = s.title||"";
-      $("#from").value  = s.mailFrom||"";
-      $("#ytHandle").value = s.youtubeHandle||"";
-      $("#ytLink").value   = s.youtubeLink||"";
-      $("#start").value = s.startAt? toLocalInput(s.startAt):"";
-      $("#end").value   = s.endAt?   toLocalInput(s.endAt):"";
+    ls.setItem("adm.rid",rid); $("#curRidTag").textContent=rid; $("#manageSec").hidden=false;
+    fetch(base()+"/admin/settings?rid="+encodeURIComponent(rid),{headers:hdrs(),mode:"cors"}).then(function(r){ if(!r.ok){toast("Ayar HTTP "+r.status); return;} return r.json();}).then(function(j){
+      if(!j) return; var s=j.settings||{};
+      $("#title").value=s.title||""; $("#from").value=s.mailFrom||""; $("#ytHandle").value=s.youtubeHandle||""; $("#ytLink").value=s.youtubeLink||"";
+      $("#start").value=s.startAt? toLocalInput(s.startAt):""; $("#end").value=s.endAt? toLocalInput(s.endAt):"";
     }).catch(function(e){ toast("Ayar hata: "+(e.message||e)); });
   }
 
   $("#save").onclick=function(){
-    var rid=ls.getItem("adm.rid"); if(!rid){ toast("Önce bir çekiliş seç."); return; }
-    var body={
-      title: ($("#title").value||"").trim(),
-      mailFrom: ($("#from").value||"").trim(),
-      youtubeHandle: ($("#ytHandle").value||"").trim(),
-      youtubeLink: ($("#ytLink").value||"").trim(),
-      startAt: fromLocalInput($("#start").value),
-      endAt: fromLocalInput($("#end").value)
-    };
-    fetch(base()+"/admin/settings?rid="+encodeURIComponent(rid),{
-      method:"POST", headers:Object.assign({},hdrs(),{"Content-Type":"application/json"}), body:JSON.stringify(body), mode:"cors"
-    }).then(function(r){
-      if(!r.ok){ toast("Kaydet HTTP "+r.status); return; }
-      toast("Kaydedildi");
-      loadList();
-    }).catch(function(e){ toast("Kaydet hata: "+(e.message||e)); });
+    var rid=ls.getItem("adm.rid"); if(!rid){ toast("Önce çekiliş seç."); return; }
+    var body={ title:($("#title").value||"").trim(), mailFrom:($("#from").value||"").trim(), youtubeHandle:($("#ytHandle").value||"").trim(), youtubeLink:($("#ytLink").value||"").trim(), startAt:fromLocalInput($("#start").value), endAt:fromLocalInput($("#end").value) };
+    fetch(base()+"/admin/settings?rid="+encodeURIComponent(rid),{ method:"POST", headers:Object.assign({},hdrs(),{"Content-Type":"application/json"}), body:JSON.stringify(body), mode:"cors"}).then(function(r){ if(!r.ok){ toast("Kaydet HTTP "+r.status); return;} toast("Kaydedildi"); loadList(); }).catch(function(e){ toast("Kaydet hata: "+(e.message||e)); });
   };
 
   $("#closeNow").onclick=function(){
-    var rid=ls.getItem("adm.rid"); if(!rid){ toast("Önce bir çekiliş seç."); return; }
-    fetch(base()+"/admin/close?rid="+encodeURIComponent(rid),{method:"POST",headers:hdrs(),mode:"cors"}).then(function(r){
-      if(!r.ok){ toast("Kapat HTTP "+r.status); return; }
-      toast("Kapandı");
-      loadList(); selectRid(rid);
-    }).catch(function(e){ toast("Kapat hata: "+(e.message||e)); });
+    var rid=ls.getItem("adm.rid"); if(!rid){ toast("Önce çekiliş seç."); return; }
+    fetch(base()+"/admin/close?rid="+encodeURIComponent(rid),{method:"POST",headers:hdrs(),mode:"cors"}).then(function(r){ if(!r.ok){ toast("Kapat HTTP "+r.status); return;} toast("Kapandı"); loadList(); selectRid(rid); }).catch(function(e){ toast("Kapat hata: "+(e.message||e)); });
   };
 
   $("#notifyEnd").onclick=function(){
-    var rid=ls.getItem("adm.rid"); if(!rid){ toast("Önce bir çekiliş seç."); return; }
-    fetch(base()+"/admin/notify-end?rid="+encodeURIComponent(rid),{method:"POST",headers:hdrs(),mode:"cors"}).then(function(r){
-      return r.json().then(function(j){ return {ok:r.ok, j:j, status:r.status}; });
-    }).then(function(res){
-      if(!res.ok){ toast("Mail HTTP "+res.status); return; }
-      var sent=(res.j && res.j.result && res.j.result.sent)||0;
-      var skipped=(res.j && res.j.result && res.j.result.skipped)||0;
-      toast("Mail: "+sent+" gönderildi, "+skipped+" atlandı");
-    }).catch(function(e){ toast("Mail hata: "+(e.message||e)); });
+    var rid=ls.getItem("adm.rid"); if(!rid){ toast("Önce çekiliş seç."); return; }
+    fetch(base()+"/admin/notify-end?rid="+encodeURIComponent(rid),{method:"POST",headers:hdrs(),mode:"cors"}).then(function(r){ return r.json().then(function(j){ return { ok:r.ok, status:r.status, j:j }; }); }).then(function(res){ if(!res.ok){ toast("Mail HTTP "+res.status); return;} var sent=(res.j&&res.j.result&&res.j.result.sent)||0; var skipped=(res.j&&res.j.result&&res.j.result.skipped)||0; toast("Mail: "+sent+" gönderildi, "+skipped+" atlandı"); }).catch(function(e){ toast("Mail hata: "+(e.message||e)); });
   };
 
   $("#exportBtn").onclick=function(){
-    var rid=ls.getItem("adm.rid"); if(!rid){ toast("Önce bir çekiliş seç."); return; }
-    fetch(base()+"/admin/export?rid="+encodeURIComponent(rid),{headers:hdrs(),mode:"cors"}).then(function(r){
-      if(!r.ok){ toast("Export HTTP "+r.status); return; }
-      return r.json();
-    }).then(function(j){
-      if(!j) return;
-      var blob=new Blob([JSON.stringify(j,null,2)],{type:"application/json"});
-      var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="export_"+rid+".json"; a.click(); URL.revokeObjectURL(a.href);
-    }).catch(function(e){ toast("Export hata: "+(e.message||e)); });
+    var rid=ls.getItem("adm.rid"); if(!rid){ toast("Önce çekiliş seç."); return; }
+    fetch(base()+"/admin/export?rid="+encodeURIComponent(rid),{headers:hdrs(),mode:"cors"}).then(function(r){ if(!r.ok){ toast("Export HTTP "+r.status); return;} return r.json();}).then(function(j){ if(!j) return; var blob=new Blob([JSON.stringify(j,null,2)],{type:"application/json"}); var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="export_"+rid+".json"; a.click(); URL.revokeObjectURL(a.href); }).catch(function(e){ toast("Export hata: "+(e.message||e)); });
+  };
+
+  $("#delRaffle").onclick=function(){
+    var rid=ls.getItem("adm.rid"); if(!rid){ toast("Önce çekiliş seç."); return; }
+    if (!confirm(rid+" silinsin mi? Bu işlem geri alınamaz.")) return;
+    delRaffle(rid);
   };
 
   $("#delEntry").onclick=function(){
-    var rid=ls.getItem("adm.rid"); var code=($("#codeDel").value||"").trim();
-    if(!rid||!code){ toast("RID ve Kod gerekli"); return; }
-    fetch(base()+"/admin/entry?rid="+encodeURIComponent(rid)+"&code="+encodeURIComponent(code),{method:"DELETE",headers:hdrs(),mode:"cors"}).then(function(r){
-      if(!r.ok){ toast("Kayıt sil HTTP "+r.status); return; }
-      toast("Kayıt silindi");
-    }).catch(function(e){ toast("Kayıt sil hata: "+(e.message||e)); });
+    var rid=ls.getItem("adm.rid"); var code=($("#codeDel").value||"").trim(); if(!rid||!code){ toast("RID ve Kod gerekli"); return; }
+    fetch(base()+"/admin/entry?rid="+encodeURIComponent(rid)+"&code="+encodeURIComponent(code),{method:"DELETE",headers:hdrs(),mode:"cors"}).then(function(r){ if(!r.ok){ toast("Kayıt sil HTTP "+r.status); return;} toast("Kayıt silindi"); }).catch(function(e){ toast("Kayıt sil hata: "+(e.message||e)); });
   };
 
-  $("#refreshList").onclick=loadList;
-
-  // canlı yenileme (10 sn)
   var _int=null; function autoRefresh(){ if(_int) clearInterval(_int); _int=setInterval(loadList,10000); }
-
-  // datetime helpers
   function toLocalInput(ms){ var d=new Date(ms); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16); }
-  function fromLocalInput(val){ if(!val) return null; var d=new Date(val); return d.getTime(); }
+  function fromLocalInput(v){ if(!v) return null; var d=new Date(v); return d.getTime(); }
 })();
 </script>
 </body>
