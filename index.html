@@ -1,302 +1,350 @@
-<!doctype html>
-<html lang="tr">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Çekiliş Formu</title>
-<meta name="color-scheme" content="dark light">
-<style>
-  :root{ --bg:#0b1020; --glass:#0f1733cc; --text:#ecf1ff; --muted:#a9b4d6; --primary:#5ea1ff; --accent:#34d399; --danger:#ff6b6b; --ring:0 0 0 3px color-mix(in oklab, var(--primary) 35%, transparent); --border:1px solid rgba(255,255,255,.12); --radius:16px; --shadow:0 16px 40px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.25); }
-  @media (prefers-color-scheme: light){
-    :root{ --text:#0b1020; --muted:#4b5563; --glass:#ffffffd9; --bg:#eef3ff; --border:1px solid rgba(0,0,0,.08); --shadow:0 18px 36px rgba(2,6,23,.08), 0 2px 10px rgba(2,6,23,.06); }
+export default {
+  async fetch(request, env) {
+    try {
+      const url  = new URL(request.url);
+      const m    = request.method;
+      const p    = url.pathname;
+
+      if (m === "OPTIONS") return resCors("");
+
+      if (m === "GET" && p === "/") {
+        return resJson({ ok:true, msg:"Worker up" });
+      }
+
+      /* ---------- PUBLIC ---------- */
+
+      // GET /meta?rid=...
+      if (m === "GET" && p === "/meta") {
+        const rid = ridParam(url);
+        if (!rid) return resJson({ ok:false, error:"rid gerekli" }, 400);
+        const settings = await getSettings(env, rid);
+        if (!settings) return resJson({ ok:false, error:"not found" }, 404);
+        return resJson({ ok:true, meta: settingsPublic(settings) });
+      }
+
+      // POST /submit?rid=...
+      if (m === "POST" && p === "/submit") {
+        return handleSubmit(request, env);
+      }
+
+      // İsteğe bağlı: kod kontrolü (rid'li)
+      if (m === "GET" && p === "/check") {
+        const rid = ridParam(url);
+        const code = str(url.searchParams.get("code"));
+        if (!rid || !code) return resJson({ ok:false, error:"rid/kod gerekli" }, 400);
+        const codeHash = await sha256hex(code);
+        const rec = await env.RAFFLE.get(keyCode(rid, codeHash), { type:"json" });
+        const s = await getSettings(env, rid);
+        if (!s || !rec) return resJson({ ok:false, status:"not_found" }, 404);
+        const now = Date.now();
+        const beforeStart = s.startAt && now < s.startAt;
+        const afterEnd    = s.endAt && now >= s.endAt;
+        const closed      = !!s.closed;
+        return resJson({ ok:true, status:"found", raffle:{ beforeStart, afterEnd, closed, startAt:s.startAt||null, endAt:s.endAt||null }, result:{ joinedAt:rec.createdAt, winner:!!rec.winner } });
+      }
+
+      /* ---------- ADMIN (auth) ---------- */
+      if (p.startsWith("/admin/")) {
+        if (!(await authAdmin(request, env))) return resJson({ ok:false, error:"Unauthorized" }, 401);
+
+        // Liste: /admin/raffles
+        if (m === "GET" && p === "/admin/raffles") {
+          const rids = await listRids(env);
+          const out = [];
+          for (const rid of rids) {
+            const s = await getSettings(env, rid);
+            const totals = await countTotals(env, rid);
+            out.push({ rid, title:s?.title||"", startAt:s?.startAt||null, endAt:s?.endAt||null, closed:!!s?.closed, totals });
+          }
+          return resJson({ ok:true, raffles: out.sort((a,b)=> (b.startAt||0)-(a.startAt||0)) });
+        }
+
+        // Ayar getir: /admin/settings?rid=
+        if (m === "GET" && p === "/admin/settings") {
+          const rid = ridParam(url); if (!rid) return resJson({ ok:false, error:"rid gerekli" }, 400);
+          const s = await getSettings(env, rid);
+          if (!s) return resJson({ ok:false, error:"not found" }, 404);
+          return resJson({ ok:true, settings: s });
+        }
+
+        // Ayar kaydet/oluştur: /admin/settings?rid=
+        if (m === "POST" && p === "/admin/settings") {
+          const rid = ridParam(url); if (!rid) return resJson({ ok:false, error:"rid gerekli" }, 400);
+          const body = await safeJson(request);
+          const cur = (await getSettings(env, rid)) || {};
+          const next = {
+            rid,
+            title: body.title || cur.title || "Çekiliş",
+            mailFrom: body.mailFrom || cur.mailFrom || "Velour <onboarding@resend.dev>",
+            startAt: nOrNull(body.startAt, cur.startAt),
+            endAt:   nOrNull(body.endAt, cur.endAt),
+            closed:  typeof body.closed === "boolean" ? body.closed : !!cur.closed,
+            youtubeHandle: body.youtubeHandle || cur.youtubeHandle || "@mwharp",
+            youtubeLink:   body.youtubeLink   || cur.youtubeLink   || "https://www.youtube.com/@mwharp",
+            createdAt: cur.createdAt || Date.now()
+          };
+          await env.RAFFLE.put(keySettings(rid), JSON.stringify(next));
+          return resJson({ ok:true, settings: next });
+        }
+
+        // Kapat: /admin/close?rid=
+        if (m === "POST" && p === "/admin/close") {
+          const rid = ridParam(url); if (!rid) return resJson({ ok:false, error:"rid gerekli" }, 400);
+          const s = await getSettings(env, rid);
+          if (!s) return resJson({ ok:false, error:"yok" }, 404);
+          s.closed = true;
+          await env.RAFFLE.put(keySettings(rid), JSON.stringify(s));
+          return resJson({ ok:true, settings: s });
+        }
+
+        // Export: /admin/export?rid=
+        if (m === "GET" && p === "/admin/export") {
+          const rid = ridParam(url); if (!rid) return resJson({ ok:false, error:"rid gerekli" }, 400);
+          const rows = await exportRows(env, rid);
+          return resJson({ ok:true, rows });
+        }
+
+        // Bitiş maili: /admin/notify-end?rid=
+        if (m === "POST" && p === "/admin/notify-end") {
+          const rid = ridParam(url); if (!rid) return resJson({ ok:false, error:"rid gerekli" }, 400);
+          const s = await getSettings(env, rid);
+          if (!s?.endAt) return resJson({ ok:false, error:"Önce bitiş zamanı ayarla." }, 400);
+          const keys = await listCodes(env, rid);
+          let sent=0, skipped=0, errors=0;
+          for (const k of keys) {
+            const rec = await env.RAFFLE.get(k, { type:"json" }); if (!rec) continue;
+            if (rec.notifiedEnd) { skipped++; continue; }
+            try {
+              await sendMail(env, { to: rec.email, subject: `${s.title || "Çekiliş"} sona erdi`, text: endMailText(s, rec), from: s.mailFrom || "Velour <onboarding@resend.dev>" });
+              rec.notifiedEnd = true;
+              await env.RAFFLE.put(k, JSON.stringify(rec));
+              sent++;
+            } catch { errors++; }
+          }
+          return resJson({ ok:true, result:{ sent, skipped, errors } });
+        }
+
+        // Çekiliş sil: /admin/raffle?rid=  (tüm anahtarları temizler)
+        if (m === "DELETE" && p === "/admin/raffle") {
+          const rid = ridParam(url); if (!rid) return resJson({ ok:false, error:"rid gerekli" }, 400);
+          const keys = await listAllForRid(env, rid);
+          for (const k of keys) await env.RAFFLE.delete(k);
+          return resJson({ ok:true, deleted: keys.length });
+        }
+
+        // Tek kayıt sil: /admin/entry?rid=&code=
+        if (m === "DELETE" && p === "/admin/entry") {
+          const rid = ridParam(url); const code = str(url.searchParams.get("code"));
+          if (!rid || !code) return resJson({ ok:false, error:"rid/kod gerekli" }, 400);
+          const h = await sha256hex(code);
+          const rec = await env.RAFFLE.get(keyCode(rid,h), { type:"json" });
+          if (!rec) return resJson({ ok:false, error:"bulunamadı" }, 404);
+          await env.RAFFLE.delete(keyCode(rid,h));
+          await env.RAFFLE.delete(keyEmail(rid, rec.email));
+          return resJson({ ok:true, deleted:true });
+        }
+      }
+
+      return resJson({ ok:false, error:"Not found" }, 404);
+
+    } catch (e) {
+      return resJson({ ok:false, error:String(e?.message||e) }, 500);
+    }
   }
-  *{box-sizing:border-box} html,body{height:100%}
-  body{ margin:0; color:var(--text); font:16px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
-    background:#000 url('https://images.wallpapersden.com/image/download/world-of-warships-gaming-2023_bW5namiUmZqaraWkpJRmbmdlrWZlbWU.jpg') center/cover fixed no-repeat; }
-  .overlay{position:fixed; inset:0; background:
-    radial-gradient(1000px 600px at 20% 10%, rgba(0,0,0,.45), transparent 60%),
-    linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55)); pointer-events:none;}
-  .container{max-width:980px; margin:min(6vh,64px) auto; padding:20px}
-  .card{background:var(--glass); border:var(--border); border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(10px) saturate(120%); overflow:hidden}
-  .header{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 20px; border-bottom:var(--border); flex-wrap:wrap}
-  .title{margin:0; font-size:clamp(22px,3vw,32px); letter-spacing:.2px}
-  .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-  .support{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:14px; border:var(--border); background:color-mix(in oklab, var(--glass) 96%, transparent); font-weight:700}
-  .support i{width:8px;height:8px;border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent)}
-  .lang{display:flex; gap:8px}
-  .lang button{border:var(--border); background:var(--glass); color:var(--text); padding:10px 12px; border-radius:12px; cursor:pointer}
-  .lang button[aria-pressed="true"]{box-shadow:var(--ring)}
-  form{display:grid; gap:16px; padding:18px}
-  .grid{display:grid; gap:12px}
-  @media (min-width: 720px){ .grid.cols-2{grid-template-columns:1fr 1fr} }
-  .field{position:relative}
-  .field input,.field select,.field textarea{ width:100%; padding:16px 14px 14px; border-radius:14px; border:1px solid rgba(255,255,255,.10);
-    background: color-mix(in oklab, var(--glass) 92%, transparent); color:var(--text); outline:none; transition:box-shadow .2s, border-color .2s, background .2s; min-height:48px; }
-  .field input::placeholder{color:transparent}
-  .field label{ position:absolute; left:12px; top:10px; padding:0 6px; pointer-events:none; color:var(--muted); background:var(--glass); transform-origin:left top; transition: transform .15s, color .2s, top .15s; }
-  .field input:focus,.field select:focus,.field textarea:focus{ box-shadow:var(--ring); border-color:color-mix(in oklab, var(--primary) 40%, transparent) }
-  .field input:not(:placeholder-shown)+label,
-  .field input:focus+label,
-  .field textarea:not(:placeholder-shown)+label,
-  .field textarea:focus+label{ transform:translateY(-14px) scale(.9); color:color-mix(in oklab, var(--primary) 70%, var(--muted)); }
-  .field select:focus + label, .field select:valid + label{ transform:translateY(-14px) scale(.9); color:color-mix(in oklab, var(--primary) 70%, var(--muted)); }
-  .row{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
-  .hint{font-size:.95rem; color:var(--muted)}
-  .error{border-color:var(--danger)!important}
-  .error-msg{color:var(--danger); font-size:.95rem}
-  .btn{border:var(--border); background:linear-gradient(180deg, color-mix(in oklab, var(--primary) 18%, var(--glass)) 0%, var(--glass) 80%); color:var(--text);
-    padding:12px 16px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow); min-height:44px}
-  .btn.ghost{background:transparent}
-  .btn:disabled{opacity:.6; cursor:not-allowed}
-  .btn.loading{position:relative; pointer-events:none}
-  .btn.loading::after{content:""; position:absolute; right:12px; top:50%; width:16px; height:16px; transform:translateY(-50%); border-radius:50%;
-    border:2px solid currentColor; border-left-color:transparent; animation:spin 0.7s linear infinite;}
-  @keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
-  .dropzone{ border:2px dashed color-mix(in oklab, var(--primary) 35%, transparent); border-radius:12px; padding:20px; text-align:center; background: color-mix(in oklab, var(--glass) 90%, transparent) }
-  .dropzone.drag{background: color-mix(in oklab, var(--primary) 10%, transparent)}
-  .preview{display:grid; gap:8px; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); margin-top:10px}
-  .preview img{width:100%; aspect-ratio:1.3/1; object-fit:cover; border-radius:10px; border:var(--border)}
-  .counts{display:flex; gap:12px; align-items:center; color:var(--muted); font-weight:600}
-  .dot{width:6px;height:6px;border-radius:50%; background:color-mix(in oklab, var(--primary) 60%, white); box-shadow:0 0 8px var(--primary)}
-  .notice{ display:flex; gap:10px; align-items:flex-start; background: color-mix(in oklab, var(--danger) 14%, var(--glass)); border:1px solid color-mix(in oklab, var(--danger) 28%, transparent); padding:10px 12px; border-radius:12px; }
-  .notice i{width:12px;height:12px;border-radius:50%; background:var(--danger); box-shadow:0 0 10px var(--danger); margin-top:4px}
-  .footer{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:14px 18px; border-top:var(--border)}
-  .toast{position:fixed; inset:auto 16px 16px auto; background:var(--glass); border:var(--border); padding:10px 12px; border-radius:10px; opacity:0; transform:translateY(10px); transition:.2s; box-shadow:var(--shadow)}
-  .toast.show{opacity:1; transform:none}
-  .hidden{display:none !important;}
-</style>
-</head>
-<body>
-<div class="overlay" aria-hidden="true"></div>
+};
 
-<div class="container">
+/* ===== Helpers ===== */
+function resCors(body, status=200, headers={}) {
+  return new Response(body, { status, headers: { "Access-Control-Allow-Origin":"*", "Access-Control-Allow-Methods":"GET,POST,DELETE,OPTIONS", "Access-Control-Allow-Headers":"Content-Type, Authorization", ...headers }});
+}
+function resJson(obj, status=200) {
+  return resCors(JSON.stringify(obj), status, { "Content-Type":"application/json" });
+}
+function str(v){ return (v||"").toString().trim(); }
+function nOrNull(v,d){ if (v===null||v===undefined||v==="") return d??null; const n=Number(v); return Number.isFinite(n)?n:(d??null); }
+function ridParam(url){ return str(url.searchParams.get("rid")).toLowerCase(); }
+function keySettings(rid){ return `settings:${rid}`; }
+function keyEmail(rid,email){ return `email:${rid}:${email}`; }
+function keyCode(rid,hash){ return `code:${rid}:${hash}`; }
 
-  <!-- 404 UI -->
-  <div id="card404" class="card hidden" role="alert">
-    <div class="header"><h1 class="title">404 — Çekiliş Bulunamadı</h1></div>
-    <div style="padding:18px">
-      <p>Bu <b>rid</b> için çekiliş bulunamadı veya kaldırılmış.</p>
-      <p class="hint">Linki kontrol et (ör. <code>?rid=mw-august</code>).</p>
-      <a class="btn" href="./">Ana sayfa</a>
-    </div>
-  </div>
-
-  <!-- FORM -->
-  <div id="cardForm" class="card hidden">
-    <div class="header">
-      <h1 class="title" id="pageTitle">Çekiliş Formu</h1>
-      <div class="right">
-        <div class="support"><i></i><span id="dateInfo" class="hint">—</span></div>
-        <div class="lang" role="group" aria-label="Dil">
-          <button type="button" id="trBtn" aria-pressed="true">TR</button>
-          <button type="button" id="enBtn" aria-pressed="false">EN</button>
-        </div>
-      </div>
-    </div>
-
-    <form id="gameForm" novalidate>
-      <input type="text" id="website" name="website" autocomplete="off" class="hidden" tabindex="-1" aria-hidden="true" />
-      <!-- DİKKAT: rid başlangıçta BOŞ -->
-      <input type="hidden" id="rid" name="rid" value="" />
-
-      <div class="grid cols-2">
-        <div class="field">
-          <input id="gameName" name="gameName" placeholder=" " required maxlength="60" />
-          <label for="gameName" data-i="gameNameLabel">Oyuncu Adı *</label>
-          <p class="hint" data-i="gameNameHint">Örn: Velour</p>
-        </div>
-
-        <div class="field">
-          <input id="gameId" name="gameId" placeholder=" " required maxlength="40" />
-          <label for="gameId" data-i="gameIdLabel">Oyuncu Kimliği *</label>
-          <p class="hint" data-i="gameIdHint">Oyundaki benzersiz kimliğin</p>
-        </div>
-
-        <div class="field">
-          <input id="discord" name="discord" placeholder=" " required maxlength="50" />
-          <label for="discord" data-i="discordLabel">Discord Kullanıcı Adı *</label>
-          <p class="hint" data-i="discordHint">Örn: Captain#1234 veya @kullanıcı</p>
-        </div>
-
-        <div class="field">
-          <input id="email" name="email" type="email" placeholder=" " required maxlength="120" />
-          <label for="email" data-i="emailLabel">E-posta *</label>
-          <p class="hint" data-i="emailHint">Kod bu e-postaya gelir</p>
-        </div>
-
-        <div class="field">
-          <select id="subscriber" name="subscriber" required>
-            <option value="" selected disabled hidden></option>
-            <option value="Evet">Evet</option>
-            <option value="Hayır">Hayır</option>
-          </select>
-          <label for="subscriber" data-i="subscriberLabel">YouTube’a abone misin? *</label>
-          <p class="hint" data-i="subscriberHelp">
-            YouTube kanalımıza buradan ulaşabilirsin:
-            <a id="ytChannel" href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer">@mwharp</a>
-          </p>
-        </div>
-      </div>
-
-      <div class="grid">
-        <div>
-          <div class="row">
-            <strong data-i="uploadTitle">Kanıt / Görsel Yükleme</strong>
-            <span class="hint" data-i="uploadHint">YouTube abonelik ekran görüntüsü vb. (max 6 dosya | tekil ≤ 8 MB | toplam ≤ 9 MB)</span>
-          </div>
-
-          <div id="dropzone" class="dropzone" aria-label="Dosya yükleme alanı">
-            <p><b data-i="dropText1">Dosyayı sürükleyip bırak</b> <span data-i="dropText2">veya tıkla.</span></p>
-            <input id="fileInput" type="file" class="hidden" multiple accept="image/*,.pdf" />
-            <button class="btn ghost" type="button" id="fileBrowse" data-i="chooseFile">Dosya Seç</button>
-            <div id="preview" class="preview"></div>
-          </div>
-
-          <div class="row" style="margin-top:8px">
-            <div class="counts">
-              <span class="dot"></span>
-              <span id="fileCount">0 / 6</span>
-              <span>•</span>
-              <span id="fileSize">0 MB / 9 MB</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="notice">
-          <i aria-hidden="true"></i>
-          <div data-i="alert">⚠ YouTube kanalımıza abone olmayanların formları dikkate alınmayacaktır. <a id="ytChannel2" href="https://www.youtube.com/@mwharp" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">Kanalı aç</a></div>
-        </div>
-      </div>
-
-      <div class="footer">
-        <div id="formErrors" class="hint" aria-live="polite"></div>
-        <div class="row">
-          <button class="btn ghost" type="reset" id="resetBtn" data-i="reset">Sıfırla</button>
-          <button class="btn" id="sendBtn" type="submit" data-i="send">Gönder</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-<script>
-/* ====== Worker URL ====== */
-const WORKER_BASE = "https://spring-dream-b90b.velour662.workers.dev";
-const ENDPOINT = WORKER_BASE + "/submit";
-
-/* ====== RID: URL'den al, forma yaz ====== */
-const params = new URLSearchParams(location.search);
-const currentRid = (params.get("rid")||"").trim().toLowerCase();
-document.getElementById("rid").value = currentRid;
-
-/* ====== Meta yükle, bulunamazsa sadece UI-404 göster ====== */
-(async function loadMeta(){
-  if(!currentRid){ show404(); return; }
-  try{
-    const r = await fetch(`${WORKER_BASE}/meta?rid=${encodeURIComponent(currentRid)}`, { mode:"cors" });
-    if(!r.ok){ show404(); return; }
-    const j = await r.json(); const m = j.meta || {};
-    document.title = m.title || "Çekiliş Formu";
-    const s = m.startAt ? new Date(m.startAt).toLocaleString("tr-TR") : "—";
-    const e = m.endAt   ? new Date(m.endAt).toLocaleString("tr-TR")   : "—";
-    document.getElementById("pageTitle").textContent = m.title || "Çekiliş";
-    document.getElementById("dateInfo").textContent = `${s} → ${e}${m.closed ? " • Kapalı":""}`;
-    const link = m.youtubeLink || "https://www.youtube.com/@mwharp";
-    const handle = m.youtubeHandle || "@mwharp";
-    const yt1 = document.getElementById("ytChannel"); if(yt1){ yt1.href=link; yt1.textContent=handle; }
-    const yt2 = document.getElementById("ytChannel2"); if(yt2){ yt2.href=link; }
-    document.getElementById("card404").classList.add("hidden");
-    document.getElementById("cardForm").classList.remove("hidden");
-  }catch(e){ show404(); }
-})();
-function show404(){
-  document.getElementById("cardForm").classList.add("hidden");
-  document.getElementById("card404").classList.remove("hidden");
+function settingsPublic(s){
+  return { title:s.title, startAt:s.startAt||null, endAt:s.endAt||null, closed:!!s.closed, youtubeHandle:s.youtubeHandle||"@mwharp", youtubeLink:s.youtubeLink||"https://www.youtube.com/" };
 }
 
-/* ====== Dil (kısaltılmış) ====== */
-const tr = { gameNameLabel:"Oyuncu Adı *", gameNameHint:"Örn: Velour", gameIdLabel:"Oyuncu Kimliği *", gameIdHint:"Oyundaki benzersiz kimliğin", discordLabel:"Discord Kullanıcı Adı *", discordHint:"Örn: Captain#1234 veya @kullanıcı", emailLabel:"E-posta *", emailHint:"Kod bu adrese gönderilir", subscriberLabel:"YouTube’a abone misin? *", uploadTitle:"Kanıt / Görsel Yükleme", uploadHint:"YouTube abonelik ekran görüntüsü vb. (max 6 dosya | tekil ≤ 8 MB | toplam ≤ 9 MB)", dropText1:"Dosyayı sürükleyip bırak", dropText2:"veya tıkla.", chooseFile:"Dosya Seç", alert:"⚠ YouTube kanalımıza abone olmayanların formları dikkate alınmayacaktır.", reset:"Sıfırla", send:"Gönder", err_required:"Lütfen zorunlu alanları doldurun.", toast_reset:"Form sıfırlandı.", toast_sent:"Gönderildi! Teşekkürler.", toast_fail_prefix:"Gönderim başarısız: " };
-const en = { gameNameLabel:"Player Name *", gameNameHint:"e.g., Velour", gameIdLabel:"Player ID *", gameIdHint:"Your unique in-game identifier", discordLabel:"Discord Username *", discordHint:"e.g., Captain#1234 or @user", emailLabel:"Email *", emailHint:"Code will be sent here", subscriberLabel:"Are you subscribed on YouTube? *", uploadTitle:"Proof / Image Upload", uploadHint:"YouTube subscription screenshot etc. (max 6 files | single ≤ 8 MB | total ≤ 9 MB)", dropText1:"Drag & drop files", dropText2:"or click.", chooseFile:"Choose File", alert:"⚠ Entries from users not subscribed to our YouTube channel will not be considered.", reset:"Reset", send:"Submit", err_required:"Please fill the required fields.", toast_reset:"Form reset.", toast_sent:"Sent! Thank you.", toast_fail_prefix:"Submit failed: " };
-let dict = tr;
-function tSet(sel,key){ const el=document.querySelector(sel); if(el) el.innerHTML=dict[key]; }
-function applyI18n(){ tSet('[for="gameName"]','gameNameLabel'); tSet('[data-i="gameNameHint"]','gameNameHint'); tSet('[for="gameId"]','gameIdLabel'); tSet('[data-i="gameIdHint"]','gameIdHint'); tSet('[for="discord"]','discordLabel'); tSet('[data-i="discordHint"]','discordHint'); tSet('[for="email"]','emailLabel'); tSet('[data-i="emailHint"]','emailHint'); tSet('[for="subscriber"]','subscriberLabel'); tSet('[data-i="uploadTitle"]','uploadTitle'); tSet('[data-i="uploadHint"]','uploadHint'); tSet('[data-i="dropText1"]','dropText1'); tSet('[data-i="dropText2"]','dropText2'); tSet('[data-i="chooseFile"]','chooseFile'); tSet('[data-i="alert"]','alert'); tSet('[data-i="reset"]','reset'); tSet('[data-i="send"]','send'); }
-document.getElementById('trBtn').addEventListener('click', ()=>{ dict=tr; document.getElementById('trBtn').setAttribute('aria-pressed','true'); document.getElementById('enBtn').setAttribute('aria-pressed','false'); applyI18n(); });
-document.getElementById('enBtn').addEventListener('click', ()=>{ dict=en; document.getElementById('enBtn').setAttribute('aria-pressed','true'); document.getElementById('trBtn').setAttribute('aria-pressed','false'); applyI18n(); });
-applyI18n();
+async function getSettings(env, rid){
+  if (!rid) return null;
+  return await env.RAFFLE.get(keySettings(rid), { type:"json" });
+}
 
-/* ====== Helpers, Dropzone, Gönderim ====== */
-const $ = s => document.querySelector(s);
-function toast(msg, ms=2500){ const t=$("#toast"); t.textContent = typeof msg==="string"?msg:JSON.stringify(msg); t.classList.add("show"); clearTimeout(t._timer); t._timer=setTimeout(()=>t.classList.remove("show"), ms); }
-const MAX_FILES = 6, MAX_FILE_SIZE = 8*1024*1024, MAX_TOTAL_SIZE = 9*1024*1024;
-const ALLOWED_TYPES = ["image/jpeg","image/png","image/webp","image/gif","image/heic","image/heif","application/pdf"];
-const drop = $("#dropzone"), finput=$("#fileInput"), browse=$("#fileBrowse"), preview=$("#preview");
-const fileCountEl=$("#fileCount"), fileSizeEl=$("#fileSize");
-browse.addEventListener("click", ()=> finput.click());
-["dragenter","dragover"].forEach(evt=> drop.addEventListener(evt, e=>{ e.preventDefault(); drop.classList.add("drag"); }));
-["dragleave","drop"].forEach(evt=> drop.addEventListener(evt, e=>{ e.preventDefault(); drop.classList.remove("drag"); }));
-drop.addEventListener("drop", e=> handleFiles(e.dataTransfer.files));
-finput.addEventListener("change", ()=> handleFiles(finput.files));
-let filesState = [];
-function bytesToMB(n){ return Math.round(n/1024/1024); }
-function refreshCounters(){ const total = filesState.reduce((a,f)=>a+f.size,0); fileCountEl.textContent = `${filesState.length} / ${MAX_FILES}`; fileSizeEl.textContent  = `${bytesToMB(total)} MB / 9 MB`; }
-function handleFiles(list){
-  const arr = [...list]; let picked = arr.slice(0, MAX_FILES); let total = 0; const valid = [];
-  for(const f of picked){
-    if(!ALLOWED_TYPES.includes(f.type)){ toast(`${f.name}: ${f.type || "unknown"} türü desteklenmiyor`); continue; }
-    if(f.size > MAX_FILE_SIZE){ toast(`${f.name}: dosya çok büyük (>${(MAX_FILE_SIZE/1024/1024)|0} MB)`); continue; }
-    if(total + f.size > MAX_TOTAL_SIZE){ toast(`Toplam boyut sınırı aşıldı (>${(MAX_TOTAL_SIZE/1024/1024)|0} MB)`); break; }
-    total += f.size; valid.push(f);
+async function listRids(env){
+  const out=[]; let cursor=undefined;
+  do{
+    const l = await env.RAFFLE.list({ prefix:"settings:", cursor });
+    for (const k of l.keys) out.push(k.name.split(":")[1]);
+    cursor = l.list_complete ? undefined : l.cursor;
+  }while(cursor);
+  return out;
+}
+async function listCodes(env, rid){
+  const out=[]; let cursor=undefined; const prefix = `code:${rid}:`;
+  do{
+    const l = await env.RAFFLE.list({ prefix, cursor });
+    for (const k of l.keys) out.push(k.name);
+    cursor = l.list_complete ? undefined : l.cursor;
+  }while(cursor);
+  return out;
+}
+async function listAllForRid(env, rid){
+  const out=[]; let cursor=undefined;
+  for (const pref of [`settings:${rid}`, `email:${rid}:`, `code:${rid}:`]){
+    cursor=undefined;
+    do{
+      const l = await env.RAFFLE.list({ prefix: pref, cursor });
+      for (const k of l.keys) out.push(k.name);
+      cursor = l.list_complete ? undefined : l.cursor;
+    }while(cursor);
   }
-  filesState = valid;
-  preview.innerHTML="";
-  filesState.forEach(file=>{
-    const card = document.createElement("div");
-    if(file.type.startsWith("image/")){ const img = document.createElement("img"); img.alt = file.name; card.appendChild(img);
-      const reader = new FileReader(); reader.onload = ev => img.src = ev.target.result; reader.readAsDataURL(file); }
-    else { card.innerHTML = `<div class="hint" style="border:var(--border);border-radius:10px;padding:8px">${file.name}</div>`; }
-    preview.appendChild(card);
-  });
-  if(arr.length > MAX_FILES) toast(`En fazla ${MAX_FILES} dosya yükleyebilirsin.`); refreshCounters();
+  return out;
 }
-refreshCounters();
+async function countTotals(env, rid){
+  const keys = await listCodes(env, rid);
+  let entries=0, winners=0;
+  for (const k of keys){ const rec = await env.RAFFLE.get(k, { type:"json" }); if(rec){ entries++; if(rec.winner) winners++; } }
+  return { entries, winners };
+}
 
-async function sendToWorker(signal){
-  const ridVal = $("#rid").value.trim();
-  if(!ridVal){ throw new Error("RID yok. Linki ?rid=... ile aç."); }
-  const fd = new FormData();
-  fd.append("rid", ridVal);
-  fd.append("gameName", $("#gameName").value.trim());
-  fd.append("gameId", $("#gameId").value.trim());
-  fd.append("discord", $("#discord").value.trim());
-  fd.append("email", $("#email").value.trim());
-  fd.append("subscriber", $("#subscriber").value);
-  filesState.forEach((f)=> fd.append("attachments", f, f.name));
-  const res = await fetch(ENDPOINT + "?rid=" + encodeURIComponent(ridVal), { method:"POST", body: fd, signal, mode:"cors" });
-  const text = await res.text(); let json={}; try{ json=JSON.parse(text); }catch{ json={ ok:false, error:text||"Beklenmeyen cevap" }; }
-  if(!res.ok || !json.ok){ throw new Error(json.error || `Hata: HTTP ${res.status}`); }
-  return true;
+async function handleSubmit(request, env){
+  const url = new URL(request.url);
+  const rid = ridParam(url);
+  if (!rid) return resJson({ ok:false, error:"rid gerekli" }, 400);
+
+  const form = await request.formData();
+  const gameName = str(form.get("gameName"));
+  const gameId   = str(form.get("gameId"));
+  const discord  = str(form.get("discord"));
+  const subscriber = str(form.get("subscriber"));
+  const email    = str(form.get("email")).toLowerCase();
+
+  if (!gameName || !gameId || !discord || !subscriber || !email) {
+    return resJson({ ok:false, error:"Zorunlu alanlar eksik." }, 400);
+  }
+
+  const s = await getSettings(env, rid);
+  if (!s) return resJson({ ok:false, error:"Bu rid için çekiliş yok." }, 404);
+
+  const now = Date.now();
+  if (s.startAt && now < s.startAt) return resJson({ ok:false, error:"Çekiliş henüz başlamadı." }, 403);
+  if (s.closed || (s.endAt && now >= s.endAt)) return resJson({ ok:false, error:"Çekiliş kapalı." }, 403);
+
+  // unique email per rid
+  const existing = await env.RAFFLE.get(keyEmail(rid, email));
+  if (existing) return resJson({ ok:false, error:"Bu e-posta ile zaten kayıt var." }, 409);
+
+  // dosyalar → GitHub
+  const files = form.getAll("attachments");
+  const MAX_FILES=6, MAX_FILE_SIZE=8*1024*1024, MAX_TOTAL_SIZE=9*1024*1024;
+  let total=0; const links=[];
+  for (const f of files.slice(0,MAX_FILES)){
+    if (typeof f==="string") continue;
+    const size=f.size||0;
+    if (size > MAX_FILE_SIZE) return resJson({ ok:false, error:`Dosya çok büyük: ${f.name}` }, 413);
+    if (total + size > MAX_TOTAL_SIZE) return resJson({ ok:false, error:"Toplam dosya boyutu sınırı aşıldı." }, 413);
+    total += size;
+    const ab = await f.arrayBuffer();
+    const up = await uploadToGitHub({ name:f.name, base64: bufToB64(ab) }, env);
+    links.push(up.raw_url);
+  }
+
+  const code = makeCode();
+  const h = await sha256hex(code);
+
+  const rec = { rid, email, gameName, gameId, discord, subscriber, attachments:links, createdAt:Date.now(), winner:false, notifiedEnd:false };
+  await env.RAFFLE.put(keyCode(rid,h), JSON.stringify(rec));
+  await env.RAFFLE.put(keyEmail(rid,email), h);
+
+  if (!env.SHEET_WEBHOOK) return resJson({ ok:false, error:"SHEET_WEBHOOK tanımlı değil." }, 500);
+  await fetch(env.SHEET_WEBHOOK, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ rid, gameName, gameId, discord, subscriber, email, code, attachments:links }) });
+
+  await sendMail(env, { to: email, subject: `${s.title||"Çekiliş"} kayıt kodun`, text: joinMailText(s, { gameName, code }), from: s.mailFrom || "Velour <onboarding@resend.dev>" });
+
+  return resJson({ ok:true, codeSent:true });
 }
-const form = $("#gameForm"), sendBtn = $("#sendBtn");
-form.addEventListener("submit", async (e)=>{
-  e.preventDefault(); if(!validate()) return;
-  const controller = new AbortController(); const t = setTimeout(()=> controller.abort(), 30000);
-  sendBtn.disabled = true; sendBtn.classList.add("loading");
-  try{ await sendToWorker(controller.signal); toast("Gönderildi! Teşekkürler."); form.reset(); filesState=[]; $("#preview").innerHTML=""; refreshCounters(); }
-  catch(err){ console.error(err); toast("Gönderim başarısız: " + (err.message || "Bilinmeyen hata"), 4000); }
-  finally{ clearTimeout(t); sendBtn.disabled=false; sendBtn.classList.remove("loading"); }
-});
-function validate(){
-  if (document.getElementById("website").value) { return false; }
-  let ok=true; $("#formErrors").textContent="";
-  ["#gameName","#gameId","#discord","#email","#subscriber"].forEach(sel=>{
-    const el=$(sel); el.classList.remove("error");
-    if(!el.value || (el.tagName==="SELECT" && el.value==="")){ el.classList.add("error"); ok=false; }
-  });
-  if(!ok){ $("#formErrors").innerHTML=`<span class="error-msg">Lütfen zorunlu alanları doldurun.</span>`; }
-  return ok;
+
+/* crypto / misc */
+async function sha256hex(text){
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
 }
-</script>
-</body>
-</html>
+function makeCode(){
+  const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; const pick=n=>Array.from({length:n},()=>c[Math.floor(Math.random()*c.length)]).join("");
+  return `${pick(4)}-${pick(4)}`;
+}
+function bufToB64(buffer){ let bin=""; const bytes=new Uint8Array(buffer); for(let i=0;i<bytes.byteLength;i++) bin+=String.fromCharCode(bytes[i]); return btoa(bin); }
+
+async function uploadToGitHub({ name, base64 }, env){
+  if (!env.GH_TOKEN || !env.GH_REPO) throw new Error("GH_TOKEN/GH_REPO eksik");
+  const repo=env.GH_REPO, branch=env.GH_BRANCH||"main", root=(env.GH_DIR||"uploads").replace(/^\/|\/$/g,"");
+  const d=new Date(); const yyyy=d.getUTCFullYear(), mm=String(d.getUTCMonth()+1).padStart(2,"0"), dd=String(d.getUTCDate()).padStart(2,"0");
+  const stamp=`${yyyy}${mm}${dd}`;
+  const safe=(name||"file").replace(/[^a-zA-Z0-9._-]/g,"_");
+  const rand=Math.random().toString(36).slice(2,10);
+  const path=`${root}/${stamp}/${rand}_${safe}`;
+  const url=`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(path)}`;
+  const r = await fetch(url, { method:"PUT", headers:{ "Authorization":`Bearer ${env.GH_TOKEN}`, "Content-Type":"application/json", "Accept":"application/vnd.github+json", "User-Agent":"cf-worker-uploader" }, body: JSON.stringify({ message:`Upload ${safe}`, content:base64, branch }) });
+  const t = await r.text(); let j={}; try{ j=JSON.parse(t);}catch{ j={ raw:t }; }
+  if(!r.ok) throw new Error(`GitHub ${r.status}: ${j?.message||j?.raw||"unknown"}`);
+  const raw=`https://raw.githubusercontent.com/${repo}/${branch}/${path}`;
+  return { raw_url: raw };
+}
+
+async function sendMail(env, { to, subject, text, from }){
+  const r = await fetch("https://api.resend.com/emails", { method:"POST", headers:{ "Authorization":`Bearer ${env.RESEND_API_KEY}`, "Content-Type":"application/json" }, body: JSON.stringify({ from, to:[to], subject, text }) });
+  if(!r.ok){ const t=await r.text(); throw new Error(`Resend ${r.status}: ${t}`); }
+}
+function joinMailText(s, { gameName, code }){
+  const title=s.title||"Çekiliş";
+  const end = s.endAt ? new Date(s.endAt).toLocaleString("tr-TR") : "yakında";
+  return `Merhaba ${gameName},
+
+${title} kaydın alındı. Benzersiz kodun:
+
+    ${code}
+
+Sonucu bu kodla şu sayfadan öğrenebilirsin:
+https://<senin-domainin>/sonuc
+
+Bitiş: ${end}
+
+Bol şans!
+– HARP Ekibi`;
+}
+function endMailText(s, rec){
+  const title=s.title||"Çekiliş";
+  return `Merhaba,
+
+${title} sona erdi. Katıldığın için teşekkürler.
+
+Kazandı mı?: ${rec.winner ? "EVET! 🎉" : "Bu kez olmadı."}
+
+Detay: https://<senin-domainin>/sonuc
+
+– HARP Ekibi`;
+}
+
+async function authAdmin(request, env){
+  const token = request.headers.get("Authorization")||"";
+  const got = token.startsWith("Bearer ")? token.slice(7): null;
+  return !!got && !!env.ADMIN_TOKEN && tEqual(got, env.ADMIN_TOKEN);
+}
+function tEqual(a,b){ if(!a||!b||a.length!==b.length) return false; let out=0; for(let i=0;i<a.length;i++) out|=a.charCodeAt(i)^b.charCodeAt(i); return out===0; }
+
+async function safeJson(request){ try{ return await request.json(); }catch{ return {}; } }
+
+async function exportRows(env, rid){
+  const keys = await listCodes(env, rid); const rows=[];
+  for (const k of keys){ const r = await env.RAFFLE.get(k, { type:"json" }); if(!r) continue;
+    rows.push({ email:r.email, gameName:r.gameName, gameId:r.gameId, discord:r.discord, subscriber:r.subscriber, createdAt:r.createdAt, winner:!!r.winner });
+  }
+  return rows;
+}
