@@ -107,8 +107,7 @@ function base(){return sanitizeBase(ls.getItem("adm.base")||"");}
 function setState(cl,tx){$("#state").innerHTML=`<span class="status-dot ${cl}"></span>${tx}`;}
 function ridNow(){return ($("#rid").value||"").trim().toLowerCase();}
 
-const INDEX_URL = (rid)=> `${base()}/meta?rid=${encodeURIComponent(rid)}`;
-const FORM_URL  = (rid)=> `${location.origin}${location.pathname.replace(/admin\.html$/,'index.html')}?rid=${encodeURIComponent(rid)}`;
+const FORM_URL = (rid) => new URL(`index.html?rid=${encodeURIComponent(rid)}`, location.href).toString();
 
 /* ---- Giriş ---- */
 $("#enter").onclick=async()=>{
@@ -234,14 +233,13 @@ $("#del").onclick=async()=>{
   toast("Silindi"); $("#rid").value=""; loadList();
 };
 
-/* ---- Liste tablo butonları ---- */
+/* ---- Liste tablo aksiyonları ---- */
 document.addEventListener("click", async (e)=>{
   const b = e.target.closest("button[data-act]"); if(!b) return;
   const rid = b.getAttribute("data-rid");
   const act = b.getAttribute("data-act");
   if (act==="use") {
     $("#rid").value=rid;
-    // meta yükle
     try{
       const r=await fetch(base()+"/meta?rid="+encodeURIComponent(rid));
       const j=await r.json();
@@ -252,16 +250,13 @@ document.addEventListener("click", async (e)=>{
         $("#end").value   = s.endAt?   toLocalISO(new Date(s.endAt))   : "";
         $("#ytHandle").value = s.youtubeHandle||"";
         $("#ytLink").value   = s.youtubeLink||"";
-        // ödülleri ayrı istekle çekmeye gerek yok; admin/settings GET de yazılabilir istersen
+        // ödüller sadece admin/settings GET ile alınmak istenirse ek istek yapılabilir
       }
     }catch{}
   }
   if (act==="openclose") {
-    // basit toggle: kapalıysa açmak = save (closed:false), açıksa closeNow
-    const row = b.closest("tr");
     const isClosed = b.textContent.trim()==="Aç";
     if (isClosed) {
-      // Aç: save closed:false
       await fetch(base()+"/admin/settings",{ method:"POST", headers:{ "Content-Type":"application/json", ...hdrs() }, body:JSON.stringify({ rid, closed:false }) });
     } else {
       await fetch(base()+"/admin/close",{ method:"POST", headers:{ "Content-Type":"application/json", ...hdrs() }, body:JSON.stringify({ rid }) });
@@ -284,7 +279,7 @@ function toLocalISO(d){ const z = d.getTimezoneOffset()*60000; return new Date(d
 function dateToNumber(v){ if(!v) return null; const d=new Date(v); const n=d.getTime(); return Number.isFinite(n)?n:null; }
 function genRid(){ const d=new Date(); const y=d.getFullYear().toString().slice(-2), m=String(d.getMonth()+1).padStart(2,"0"), da=String(d.getDate()).padStart(2,"0"); const rnd=Math.random().toString(36).slice(2,6); return `r-${y}${m}${da}-${rnd}`; }
 
-/* ilk açılış varsa otomatik doldur */
+/* otomatik doldur */
 (function initPrefill(){
   const b=ls.getItem("adm.base"); const t=ls.getItem("adm.token");
   if(b) $("#base").value=b; if(t) $("#token").value=t;
